@@ -2474,6 +2474,9 @@ public class EditorUI : IDisposable
                 ? _projectSettings.BuildOutput
                 : Path.Combine(AssetDatabase.ProjectRoot, _projectSettings.BuildOutput);
             Directory.CreateDirectory(buildDirectory);
+            // Even an empty scene is a valid game build. AssetDatabase uses this
+            // structural folder to recognize a packaged game beside game.json.
+            Directory.CreateDirectory(Path.Combine(buildDirectory, "Assets"));
 
             if (string.IsNullOrWhiteSpace(_projectSettings.StartupScene))
             {
@@ -2611,7 +2614,12 @@ public class EditorUI : IDisposable
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         string? errorLine = lines.LastOrDefault(line =>
             line.Contains(": error ", StringComparison.OrdinalIgnoreCase));
-        return errorLine ?? lines.LastOrDefault() ?? "The build process failed without an error message.";
+        if (errorLine != null)
+            return errorLine;
+
+        return lines.Length == 0
+            ? "The build process failed without an error message."
+            : string.Join(" | ", lines.TakeLast(Math.Min(4, lines.Length)));
     }
 
     private static void CopyDirectory(string source, string destination)

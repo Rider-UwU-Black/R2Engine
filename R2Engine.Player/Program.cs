@@ -6,6 +6,7 @@ using R2Engine.Runtime.Audio;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using System.Runtime.InteropServices;
 
 namespace R2Engine.Player;
 
@@ -35,6 +36,25 @@ internal static class Program
 
     private static void Main()
     {
+        try
+        {
+            RunPlayer();
+        }
+        catch (Exception exception)
+        {
+            string details = exception.ToString();
+            string logPath = Path.Combine(AppContext.BaseDirectory, "R2Game-crash.log");
+            try { File.WriteAllText(logPath, details); } catch { }
+            Console.Error.WriteLine(details);
+            if (OperatingSystem.IsWindows())
+                MessageBoxW(IntPtr.Zero,
+                    $"R2Game could not start.\n\n{exception.GetBaseException().Message}\n\nA crash report was written to:\n{logPath}",
+                    "R2Engine Player Error", 0x10);
+        }
+    }
+
+    private static void RunPlayer()
+    {
         string settingsPath = Path.Combine(AppContext.BaseDirectory, "game.json");
         if (!File.Exists(settingsPath))
             throw new FileNotFoundException("This build has no game.json settings file.", settingsPath);
@@ -63,6 +83,9 @@ internal static class Program
         _window.Run();
         _window.Dispose();
     }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int MessageBoxW(IntPtr window, string text, string caption, uint type);
 
     private static void Load(ProjectSettings settings)
     {
