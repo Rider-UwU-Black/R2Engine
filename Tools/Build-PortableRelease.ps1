@@ -67,6 +67,14 @@ dotnet publish (Join-Path $repositoryRoot 'R2Engine.Editor\R2Engine.Editor.cspro
     --output $editorOutput
 if ($LASTEXITCODE -ne 0) { throw 'The Editor publish failed.' }
 
+$playerTemplateOutput = Join-Path $packageRoot 'PlayerTemplate'
+dotnet publish (Join-Path $repositoryRoot 'R2Engine.Player\R2Engine.Player.csproj') `
+    --configuration Release `
+    --runtime $RuntimeIdentifier `
+    --self-contained true `
+    --output $playerTemplateOutput
+if ($LASTEXITCODE -ne 0) { throw 'The standalone player template publish failed.' }
+
 $editorIcons = Join-Path $editorOutput 'Editor\Icons'
 New-Item -ItemType Directory -Path $editorIcons -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'R2Engine.Editor\Editor\Icons') -File |

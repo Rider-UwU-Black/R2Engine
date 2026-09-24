@@ -1551,8 +1551,7 @@ public class EditorUI : IDisposable
 
             ImGui.Separator();
 
-            bool canBuild = !string.IsNullOrWhiteSpace(_currentScenePath) ||
-                            !string.IsNullOrWhiteSpace(_projectSettings.StartupScene);
+            bool canBuild = _gameBuildTask == null;
             if (!canBuild) ImGui.BeginDisabled();
 
             if (ImGui.BeginMenu("Build"))
@@ -2309,14 +2308,15 @@ public class EditorUI : IDisposable
         }
 
         if (string.IsNullOrWhiteSpace(_currentScenePath) &&
-            string.IsNullOrWhiteSpace(_projectSettings.StartupScene))
+            string.IsNullOrWhiteSpace(_projectSettings.StartupScene) &&
+            !SaveScene())
         {
-            _statusMessage = "Choose a startup scene in Project Settings before building.";
+            _statusMessage = "Build cancelled because the scene was not saved.";
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(_currentScenePath))
-            SaveScene();
+        if (!string.IsNullOrWhiteSpace(_currentScenePath) && !SaveScene())
+            return;
 
         _statusMessage = "Building game...";
         _scriptMessages.Add(_statusMessage);
@@ -2332,14 +2332,15 @@ public class EditorUI : IDisposable
         }
 
         if (string.IsNullOrWhiteSpace(_currentScenePath) &&
-            string.IsNullOrWhiteSpace(_projectSettings.StartupScene))
+            string.IsNullOrWhiteSpace(_projectSettings.StartupScene) &&
+            !SaveScene())
         {
-            _statusMessage = "Choose a startup scene in Project Settings before building.";
+            _statusMessage = "Build cancelled because the scene was not saved.";
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(_currentScenePath))
-            SaveScene();
+        if (!string.IsNullOrWhiteSpace(_currentScenePath) && !SaveScene())
+            return;
 
         if (deployToNetwork && string.IsNullOrWhiteSpace(_projectSettings.Ps2NetworkBuildDirectory))
         {
@@ -2465,6 +2466,7 @@ public class EditorUI : IDisposable
         {
             string solutionRoot = FindEngineRoot();
             string playerProject = Path.Combine(solutionRoot, "R2Engine.Player", "R2Engine.Player.csproj");
+            string playerTemplate = Path.Combine(solutionRoot, "PlayerTemplate");
             string isolatedBuildCache = Path.Combine(solutionRoot, ".standalone-build-cache");
             string buildLogPath = Path.Combine(isolatedBuildCache, "game-build.log");
             Directory.CreateDirectory(isolatedBuildCache);
@@ -2483,40 +2485,46 @@ public class EditorUI : IDisposable
             if (!File.Exists(startupScenePath))
                 throw new FileNotFoundException("The configured startup scene could not be found.", startupScenePath);
 
-            string configuration = _projectSettings.DevelopmentBuild ? "Debug" : "Release";
-
-            var startInfo = new System.Diagnostics.ProcessStartInfo
+            if (File.Exists(Path.Combine(playerTemplate, "R2Game.exe")))
             {
-                FileName = "dotnet",
-                WorkingDirectory = solutionRoot,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            startInfo.ArgumentList.Add("publish");
-            startInfo.ArgumentList.Add(playerProject);
-            startInfo.ArgumentList.Add("-c");
-            startInfo.ArgumentList.Add(configuration);
-            startInfo.ArgumentList.Add($"-p:BaseOutputPath={isolatedBuildCache}{Path.DirectorySeparatorChar}");
-            startInfo.ArgumentList.Add("-o");
-            startInfo.ArgumentList.Add(buildDirectory);
-            startInfo.ArgumentList.Add("--nologo");
-            startInfo.ArgumentList.Add($"-flp:logfile={buildLogPath};verbosity=minimal;append=false");
-
-            using System.Diagnostics.Process process = System.Diagnostics.Process.Start(startInfo)
-                ?? throw new InvalidOperationException("Could not start the game build process.");
-
-            if (!process.WaitForExit(120_000))
-            {
-                process.Kill(entireProcessTree: true);
-                throw new TimeoutException("The game build exceeded two minutes and was stopped.");
+                CopyDirectory(playerTemplate, buildDirectory);
             }
-
-            if (process.ExitCode != 0)
+            else
             {
-                string log = File.Exists(buildLogPath)
-                    ? File.ReadAllText(buildLogPath)
-                    : "";
-                throw new InvalidOperationException(SummarizeBuildFailure(log, ""));
+                string configuration = _projectSettings.DevelopmentBuild ? "Debug" : "Release";
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    WorkingDirectory = solutionRoot,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                startInfo.ArgumentList.Add("publish");
+                startInfo.ArgumentList.Add(playerProject);
+                startInfo.ArgumentList.Add("-c");
+                startInfo.ArgumentList.Add(configuration);
+                startInfo.ArgumentList.Add($"-p:BaseOutputPath={isolatedBuildCache}{Path.DirectorySeparatorChar}");
+                startInfo.ArgumentList.Add("-o");
+                startInfo.ArgumentList.Add(buildDirectory);
+                startInfo.ArgumentList.Add("--nologo");
+                startInfo.ArgumentList.Add($"-flp:logfile={buildLogPath};verbosity=minimal;append=false");
+
+                using System.Diagnostics.Process process = System.Diagnostics.Process.Start(startInfo)
+                    ?? throw new InvalidOperationException("Could not start the game build process.");
+
+                if (!process.WaitForExit(120_000))
+                {
+                    process.Kill(entireProcessTree: true);
+                    throw new TimeoutException("The game build exceeded two minutes and was stopped.");
+                }
+
+                if (process.ExitCode != 0)
+                {
+                    string log = File.Exists(buildLogPath)
+                        ? File.ReadAllText(buildLogPath)
+                        : "";
+                    throw new InvalidOperationException(SummarizeBuildFailure(log, ""));
+                }
             }
 
             string[] buildScenes = _projectSettings.BuildScenes
