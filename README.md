@@ -6,6 +6,16 @@ The goal is to make building a small PS2-style game approachable. You can create
 
 **New here?** Start with the [R2Engine Quick Start](QUICKSTART.md).
 
+## Gallery
+
+| R2Engine Hub | R2Engine Editor |
+| --- | --- |
+| ![The R2Engine Hub showing a project and its editor version](Docs/Images/hub-projects.png) | ![The R2Engine Editor with its Hierarchy, Scene, Performance, and Project views](Docs/Images/editor-overview.png) |
+
+### Running on PlayStation 2
+
+![An R2Engine game running through the native PS2 runtime in PCSX2](Docs/Images/ps2-pcsx2.png)
+
 ## Project status
 
 R2Engine is an early, actively developed project. It is usable for experiments and small games, but workflows, file formats, and features may still change. Expect rough edges and test your work regularly.
