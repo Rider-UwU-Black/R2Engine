@@ -17,6 +17,7 @@ build-validation/
 *.suo
 *.DotSettings.user
 imgui.ini
+!R2Engine.Editor/Editor/Defaults/imgui.ini
 __pycache__/
 
 # Native intermediate files

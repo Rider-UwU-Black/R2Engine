@@ -37,6 +37,7 @@ internal static class Program
                 string projectRoot = Path.GetFullPath(args[projectArgument + 1]);
                 AssetDatabase.ConfigureProjectRoot(projectRoot);
                 Directory.SetCurrentDirectory(projectRoot);
+                EnsureStarterLayout(projectRoot);
             }
             catch (Exception exception)
             {
@@ -193,6 +194,32 @@ internal static class Program
             _window.Dispose();
         }
         return 0;
+    }
+
+    private static void EnsureStarterLayout(string projectRoot)
+    {
+        string projectLayout = Path.Combine(projectRoot, "imgui.ini");
+        if (File.Exists(projectLayout))
+            return;
+
+        DirectoryInfo? directory = new(Path.GetFullPath(AppContext.BaseDirectory));
+        while (directory != null)
+        {
+            string template = Path.Combine(
+                directory.FullName,
+                "R2Engine.Editor",
+                "Editor",
+                "Defaults",
+                "imgui.ini");
+            if (File.Exists(template))
+            {
+                File.Copy(template, projectLayout, overwrite: false);
+                return;
+            }
+            directory = directory.Parent;
+        }
+
+        Console.Error.WriteLine("The starter editor layout could not be found; using the built-in ImGui layout.");
     }
 
     private static void OnLoad()
