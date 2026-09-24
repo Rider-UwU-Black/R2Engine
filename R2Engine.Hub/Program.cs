@@ -55,7 +55,7 @@ internal sealed class HubForm : Form
     public HubForm()
     {
         _engineRoot = FindEngineRoot(AppContext.BaseDirectory);
-        _editorPath = Path.Combine(_engineRoot, "R2Engine.Editor", "bin", "Debug", "net10.0", "R2Engine.Editor.exe");
+        _editorPath = FindEditorExecutable(_engineRoot);
         _editorVersion = ReadExecutableVersion(_editorPath);
         _statePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -1162,6 +1162,17 @@ internal sealed class HubForm : Form
             directory = directory.Parent;
         }
         throw new DirectoryNotFoundException("Could not locate the R2Engine installation.");
+    }
+
+    private static string FindEditorExecutable(string engineRoot)
+    {
+        string[] candidates =
+        {
+            Path.Combine(engineRoot, "Editor", "R2Engine.Editor.exe"),
+            Path.Combine(engineRoot, "R2Engine.Editor", "bin", "Debug", "net10.0", "R2Engine.Editor.exe"),
+            Path.Combine(engineRoot, "R2Engine.Editor", "bin", "Release", "net10.0", "R2Engine.Editor.exe")
+        };
+        return candidates.FirstOrDefault(File.Exists) ?? candidates[0];
     }
 }
 
