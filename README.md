@@ -4,6 +4,8 @@ R2Engine is a small 3D game engine for making games that can run on Windows and 
 
 The goal is to make building a small PS2-style game approachable. You can create scenes, place objects, attach components, import assets, write gameplay scripts, test on Windows, and then build the same project for PCSX2 or compatible PS2 homebrew hardware.
 
+**New here?** Start with the [R2Engine Quick Start](QUICKSTART.md).
+
 ## Project status
 
 R2Engine is an early, actively developed project. It is usable for experiments and small games, but workflows, file formats, and features may still change. Expect rough edges and test your work regularly.

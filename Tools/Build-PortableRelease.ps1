@@ -84,7 +84,7 @@ foreach ($directory in @(
     Copy-PortableTree $directory
 }
 
-foreach ($file in @('README.md', 'LICENSE', 'R2Engine.slnx')) {
+foreach ($file in @('README.md', 'QUICKSTART.md', 'LICENSE', 'R2Engine.slnx')) {
     Copy-Item -LiteralPath (Join-Path $repositoryRoot $file) -Destination $packageRoot -Force
 }
 
