@@ -21,3 +21,9 @@ Select an object and use Add Component in the Inspector. You can enable or disab
 ## Saving safely
 
 Save the scene regularly. A scene stores object setup, while imported files stay in Assets. Moving files through the Project window updates references more safely than moving them behind the editor in File Explorer.
+
+## Editor layouts
+
+Open **Window → Layouts** to restore the built-in Default arrangement or switch to a layout you saved. **Save Current Layout** stores the current panel arrangement for use across every project opened by this R2Engine installation. Each saved layout can also be overwritten or deleted from its submenu.
+
+The active arrangement is still remembered per project. Loading a shared layout replaces that project's current arrangement without changing its scenes or assets. Portable builds keep shared layouts inside `UserData\Layouts`; development builds keep them with the Hub's local user settings.

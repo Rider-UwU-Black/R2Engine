@@ -85,6 +85,9 @@ public class EditorUI : IDisposable
     private readonly ProjectSettings _projectSettings;
     private bool _showProjectSettings;
     private bool _focusProjectSettings;
+    private bool _openSaveLayoutPopup;
+    private string _layoutNameBuffer = "";
+    private EditorLayout? _layoutToDelete;
     private Task<string>? _gameBuildTask;
 
     private GameObject? _selectedObject;
@@ -685,6 +688,7 @@ public class EditorUI : IDisposable
         DrawSkeletonConfigurationWindow();
 
         DrawUnsavedChangesPopup();
+        DrawLayoutPopups();
 
         if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
         {
@@ -1767,6 +1771,40 @@ public class EditorUI : IDisposable
             if (ImGui.MenuItem("Performance")) _showPerformanceWindow = true;
             if (ImGui.MenuItem("Texture Budget")) _showTextureBudgetWindow = true;
 
+            ImGui.Separator();
+            if (ImGui.BeginMenu("Layouts"))
+            {
+                if (ImGui.MenuItem("Default"))
+                    TryLoadLayout(null);
+
+                IReadOnlyList<EditorLayout> layouts = EditorLayoutManager.GetCustomLayouts();
+                if (layouts.Count > 0)
+                {
+                    ImGui.Separator();
+                    foreach (EditorLayout layout in layouts)
+                    {
+                        if (!ImGui.BeginMenu(layout.Name))
+                            continue;
+                        if (ImGui.MenuItem("Load"))
+                            TryLoadLayout(layout);
+                        if (ImGui.MenuItem("Overwrite With Current"))
+                            TryOverwriteLayout(layout);
+                        ImGui.Separator();
+                        if (ImGui.MenuItem("Delete..."))
+                            _layoutToDelete = layout;
+                        ImGui.EndMenu();
+                    }
+                }
+
+                ImGui.Separator();
+                if (ImGui.MenuItem("Save Current Layout..."))
+                {
+                    _layoutNameBuffer = "";
+                    _openSaveLayoutPopup = true;
+                }
+                ImGui.EndMenu();
+            }
+
             ImGui.EndMenu();
         }
 
@@ -1781,6 +1819,114 @@ public class EditorUI : IDisposable
         }
 
         ImGui.EndMainMenuBar();
+    }
+
+    private void TryLoadLayout(EditorLayout? layout)
+    {
+        try
+        {
+            if (layout == null)
+            {
+                EditorLayoutManager.LoadDefault();
+                _statusMessage = "Loaded the Default editor layout.";
+            }
+            else
+            {
+                EditorLayoutManager.Load(layout);
+                _statusMessage = $"Loaded editor layout '{layout.Name}'.";
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            _statusMessage = $"Could not load the editor layout: {exception.Message}";
+        }
+    }
+
+    private void TryOverwriteLayout(EditorLayout layout)
+    {
+        try
+        {
+            EditorLayoutManager.Overwrite(layout);
+            _statusMessage = $"Updated editor layout '{layout.Name}'.";
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _statusMessage = $"Could not update the editor layout: {exception.Message}";
+        }
+    }
+
+    private void DrawLayoutPopups()
+    {
+        if (_openSaveLayoutPopup)
+        {
+            ImGui.OpenPopup("Save Editor Layout");
+            _openSaveLayoutPopup = false;
+        }
+
+        bool saveOpen = true;
+        if (ImGui.BeginPopupModal("Save Editor Layout", ref saveOpen, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.TextUnformatted("Save the current arrangement for use in every project.");
+            ImGui.SetNextItemWidth(320.0f);
+            bool submit = ImGui.InputText("Name", ref _layoutNameBuffer, 80,
+                ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll);
+
+            bool canSave = !string.IsNullOrWhiteSpace(_layoutNameBuffer);
+            if (!canSave) ImGui.BeginDisabled();
+            if ((ImGui.Button("Save", new Vector2(90.0f, 0.0f)) || submit) && canSave)
+            {
+                try
+                {
+                    EditorLayoutManager.SaveNew(_layoutNameBuffer);
+                    _statusMessage = $"Saved editor layout '{_layoutNameBuffer.Trim()}'.";
+                    ImGui.CloseCurrentPopup();
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+                {
+                    _statusMessage = $"Could not save the editor layout: {exception.Message}";
+                }
+            }
+            if (!canSave) ImGui.EndDisabled();
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel", new Vector2(90.0f, 0.0f)))
+                ImGui.CloseCurrentPopup();
+            ImGui.EndPopup();
+        }
+
+        if (_layoutToDelete != null)
+            ImGui.OpenPopup("Delete Editor Layout");
+
+        bool deleteOpen = true;
+        if (ImGui.BeginPopupModal("Delete Editor Layout", ref deleteOpen, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            EditorLayout layout = _layoutToDelete!;
+            ImGui.TextWrapped($"Delete the saved layout '{layout.Name}'?");
+            if (ImGui.Button("Delete", new Vector2(90.0f, 0.0f)))
+            {
+                try
+                {
+                    EditorLayoutManager.Delete(layout);
+                    _statusMessage = $"Deleted editor layout '{layout.Name}'.";
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    _statusMessage = $"Could not delete the editor layout: {exception.Message}";
+                }
+                _layoutToDelete = null;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel", new Vector2(90.0f, 0.0f)))
+            {
+                _layoutToDelete = null;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.EndPopup();
+        }
+        else if (!deleteOpen)
+        {
+            _layoutToDelete = null;
+        }
     }
 
     private static string FindEngineDocumentationPath()

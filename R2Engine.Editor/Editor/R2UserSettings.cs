@@ -7,7 +7,9 @@ internal sealed class R2UserSettings
     public bool DarkTheme { get; set; }
     public string Pcsx2ExecutablePath { get; set; } = "";
 
-    private static string SettingsPath => Path.Combine(FindUserDataRoot(), "user-settings.json");
+    internal static string UserDataRoot { get; } = FindUserDataRoot();
+
+    private static string SettingsPath => Path.Combine(UserDataRoot, "user-settings.json");
 
     private static string FindUserDataRoot()
     {
