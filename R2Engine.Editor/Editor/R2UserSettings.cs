@@ -7,9 +7,21 @@ internal sealed class R2UserSettings
     public bool DarkTheme { get; set; }
     public string Pcsx2ExecutablePath { get; set; } = "";
 
-    private static string SettingsPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "R2Engine", "user-settings.json");
+    private static string SettingsPath => Path.Combine(FindUserDataRoot(), "user-settings.json");
+
+    private static string FindUserDataRoot()
+    {
+        DirectoryInfo? directory = new(Path.GetFullPath(AppContext.BaseDirectory));
+        while (directory != null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, ".r2portable")))
+                return Path.Combine(directory.FullName, "UserData");
+            directory = directory.Parent;
+        }
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "R2Engine");
+    }
 
     public static R2UserSettings Load()
     {

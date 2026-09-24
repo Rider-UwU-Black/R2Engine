@@ -88,6 +88,10 @@ foreach ($file in @('README.md', 'LICENSE', 'R2Engine.slnx')) {
     Copy-Item -LiteralPath (Join-Path $repositoryRoot $file) -Destination $packageRoot -Force
 }
 
+Set-Content -LiteralPath (Join-Path $packageRoot '.r2portable') `
+    -Value 'R2Engine portable user data marker. Do not delete.' `
+    -Encoding ASCII
+
 Compress-Archive -LiteralPath $packageRoot -DestinationPath $archivePath -CompressionLevel Optimal
 
 $archive = Get-Item -LiteralPath $archivePath

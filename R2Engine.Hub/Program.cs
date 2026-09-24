@@ -57,9 +57,7 @@ internal sealed class HubForm : Form
         _engineRoot = FindEngineRoot(AppContext.BaseDirectory);
         _editorPath = FindEditorExecutable(_engineRoot);
         _editorVersion = ReadExecutableVersion(_editorPath);
-        _statePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "R2Engine", "hub-projects.json");
+        _statePath = Path.Combine(R2UserData.Root, "hub-projects.json");
         _settings = UserSettings.Load();
         string iconFontPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon-works.ttf");
         if (File.Exists(iconFontPath))
@@ -1944,6 +1942,25 @@ internal sealed class NewProjectDialog : Form
     }
 }
 
+internal static class R2UserData
+{
+    public static string Root { get; } = FindRoot();
+
+    private static string FindRoot()
+    {
+        DirectoryInfo? directory = new(Path.GetFullPath(AppContext.BaseDirectory));
+        while (directory != null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, ".r2portable")))
+                return Path.Combine(directory.FullName, "UserData");
+            directory = directory.Parent;
+        }
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "R2Engine");
+    }
+}
+
 internal sealed class UserSettings
 {
     public bool DarkTheme { get; set; }
@@ -1957,9 +1974,7 @@ internal sealed class UserSettings
         ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "R2Engine Projects")
         : Environment.ExpandEnvironmentVariables(DefaultProjectsFolder);
 
-    public static string SettingsPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "R2Engine", "user-settings.json");
+    public static string SettingsPath => Path.Combine(R2UserData.Root, "user-settings.json");
 
     public static UserSettings Load()
     {
