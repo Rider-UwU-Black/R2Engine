@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\R2Engine.Editor\Scene\Component.cs" Link="Scene\Component.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Transform.cs" Link="Scene\Transform.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\GameObject.cs" Link="Scene\GameObject.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Scene.cs" Link="Scene\Scene.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Camera.cs" Link="Scene\Camera.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Light.cs" Link="Scene\Light.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Material.cs" Link="Scene\Material.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Collider.cs" Link="Scene\Collider.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Rotator.cs" Link="Scene\Rotator.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\RuntimeInput.cs" Link="Scene\RuntimeInput.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SceneManager.cs" Link="Scene\SceneManager.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\ScriptBehaviour.cs" Link="Scene\ScriptBehaviour.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\ScriptFieldUtility.cs" Link="Scene\ScriptFieldUtility.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\ScriptComponent.cs" Link="Scene\ScriptComponent.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\ScriptRuntime.cs" Link="Scene\ScriptRuntime.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SkeletonBone.cs" Link="Scene\SkeletonBone.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Mesh.cs" Link="Scene\Mesh.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\PrimitiveMeshes.cs" Link="Scene\PrimitiveMeshes.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\MeshRenderer.cs" Link="Scene\MeshRenderer.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Rigidbody.cs" Link="Scene\Rigidbody.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\CollisionSystem.cs" Link="Scene\CollisionSystem.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\PlayerController.cs" Link="Scene\PlayerController.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\AssetImportSettings.cs" Link="Scene\AssetImportSettings.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\AnimationClip.cs" Link="Scene\AnimationClip.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\AnimatorController.cs" Link="Scene\AnimatorController.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SkeletalAsset.cs" Link="Scene\SkeletalAsset.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\HumanoidAnimationAsset.cs" Link="Scene\HumanoidAnimationAsset.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\HumanoidRig.cs" Link="Scene\HumanoidRig.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Animator.cs" Link="Scene\Animator.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\AudioSource.cs" Link="Scene\AudioSource.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SavePoint.cs" Link="Scene\SavePoint.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\AnimatorTriggerZone.cs" Link="Scene\AnimatorTriggerZone.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Interactable.cs" Link="Scene\Interactable.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SlidingDoor.cs" Link="Scene\SlidingDoor.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\PersistentObject.cs" Link="Scene\PersistentObject.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\Canvas.cs" Link="Scene\Canvas.cs" />
+  </ItemGroup>
+</Project>

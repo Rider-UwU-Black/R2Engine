@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\R2Engine.Runtime\R2Engine.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenAL" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1" />
+    <PackageReference Include="AssimpNetter" Version="6.0.5" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
+
+    <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.23.0" />
+
+    <PackageReference Include="StbImageSharp" Version="2.30.16" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Assets\Scripts\**\*.cs" />
+    <Compile Remove="Scene\Component.cs" />
+    <Compile Remove="Scene\Transform.cs" />
+    <Compile Remove="Scene\GameObject.cs" />
+    <Compile Remove="Scene\Scene.cs" />
+    <Compile Remove="Scene\Camera.cs" />
+    <Compile Remove="Scene\Light.cs" />
+    <Compile Remove="Scene\Material.cs" />
+    <Compile Remove="Scene\Collider.cs" />
+    <Compile Remove="Scene\Rotator.cs" />
+    <Compile Remove="Scene\RuntimeInput.cs" />
+    <Compile Remove="Scene\SceneManager.cs" />
+    <Compile Remove="Scene\ScriptBehaviour.cs" />
+    <Compile Remove="Scene\ScriptFieldUtility.cs" />
+    <Compile Remove="Scene\ScriptComponent.cs" />
+    <Compile Remove="Scene\ScriptRuntime.cs" />
+    <Compile Remove="Scene\SkeletonBone.cs" />
+    <Compile Remove="Scene\Mesh.cs" />
+    <Compile Remove="Scene\PrimitiveMeshes.cs" />
+    <Compile Remove="Scene\MeshRenderer.cs" />
+    <Compile Remove="Scene\Rigidbody.cs" />
+    <Compile Remove="Scene\CollisionSystem.cs" />
+    <Compile Remove="Scene\PlayerController.cs" />
+    <Compile Remove="Scene\AssetImportSettings.cs" />
+    <Compile Remove="Scene\AnimationClip.cs" />
+    <Compile Remove="Scene\AnimatorController.cs" />
+    <Compile Remove="Scene\SkeletalAsset.cs" />
+    <Compile Remove="Scene\HumanoidAnimationAsset.cs" />
+    <Compile Remove="Scene\HumanoidRig.cs" />
+    <Compile Remove="Scene\Animator.cs" />
+    <Compile Remove="Scene\AudioSource.cs" />
+    <Compile Remove="Scene\SavePoint.cs" />
+    <Compile Remove="Scene\AnimatorTriggerZone.cs" />
+    <Compile Remove="Scene\Interactable.cs" />
+    <Compile Remove="Scene\SlidingDoor.cs" />
+    <Compile Remove="Scene\PersistentObject.cs" />
+    <Compile Remove="Scene\Canvas.cs" />
+  </ItemGroup>
+
+</Project>

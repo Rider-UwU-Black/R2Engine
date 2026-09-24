@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="R2Engine.Runtime/R2Engine.Runtime.csproj" />
+  <Project Path="R2Engine.Desktop/R2Engine.Desktop.csproj" />
+  <Project Path="R2Engine.Editor/R2Engine.Editor.csproj" />
+  <Project Path="R2Engine.Hub/R2Engine.Hub.csproj" />
+  <Project Path="R2Engine.Player/R2Engine.Player.csproj" />
+</Solution>

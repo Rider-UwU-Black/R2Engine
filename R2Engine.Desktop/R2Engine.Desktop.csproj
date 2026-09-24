@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\R2Engine.Runtime\R2Engine.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenAL" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1" />
+    <PackageReference Include="AssimpNetter" Version="6.0.5" />
+    <PackageReference Include="StbImageSharp" Version="2.30.16" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\R2Engine.Editor\ProjectSettings.cs" Link="ProjectSettings.cs" />
+    <Compile Include="..\R2Engine.Editor\Editor\AssetDatabase.cs" Link="AssetDatabase.cs" />
+    <Compile Include="..\R2Engine.Editor\Editor\WavAssetImporter.cs" Link="WavAssetImporter.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\DesktopPlatformServices.cs" Link="Scene\DesktopPlatformServices.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\InputDevicePoller.cs" Link="Scene\InputDevicePoller.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\WindowsLegacyJoystick.cs" Link="Scene\WindowsLegacyJoystick.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SceneRenderer.cs" Link="Scene\SceneRenderer.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\UiNineSlice.cs" Link="Scene\UiNineSlice.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\LoadingScreen.cs" Link="Scene\LoadingScreen.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\TextureLoader.cs" Link="Scene\TextureLoader.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\AudioSystem.cs" Link="Scene\AudioSystem.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SceneSerializer.cs" Link="Scene\SceneSerializer.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\ScriptCompiler.cs" Link="Scene\ScriptCompiler.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\MaterialAssetCache.cs" Link="Scene\MaterialAssetCache.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\MaterialSerializer.cs" Link="Scene\MaterialSerializer.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\MeshAssetCache.cs" Link="Scene\MeshAssetCache.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\ObjImporter.cs" Link="Scene\ObjImporter.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\SkeletalAssetImporter.cs" Link="Scene\SkeletalAssetImporter.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\TextureImportUtility.cs" Link="Scene\TextureImportUtility.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\FontAsset.cs" Link="Scene\FontAsset.cs" />
+    <Compile Include="..\R2Engine.Editor\Scene\FontAssetImporter.cs" Link="Scene\FontAssetImporter.cs" />
+  </ItemGroup>
+</Project>

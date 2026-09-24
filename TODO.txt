@@ -1,0 +1,618 @@
+R2 ENGINE PROJECT TODO
+Last updated: September 3, 2026
+
+This is the living checklist for the engine itself. Update it whenever a feature is
+finished, postponed, broken, or newly planned.
+
+
+CURRENT STATUS
+==============
+
+[DONE] Editor foundation
+  - Scene and Game views
+  - Scene view displays the live runtime scene during Play Mode
+  - Hierarchy, Inspector, Project browser, and Console
+  - Play/Stop workflow without losing the edited scene
+  - Build and Run standalone games
+  - Project Settings window and startup scene/build scene configuration
+  - Undo/redo for editor changes
+
+[DONE] Scene editing
+  - Create and remove common objects/components
+  - Transform gizmos and camera navigation
+  - Drag-to-reorder hierarchy objects
+  - Drag-to-parent and unparent objects with visual drop feedback
+  - Visibility and locking controls
+  - Collapsed hierarchy branches when opening a scene
+  - Prefab creation and reuse across scenes
+  - Delete-key support for scene objects and assets
+  - Multi-object selection/editing with Ctrl-click, box selection, and Shift-range selection
+  - Hierarchy search by object name or component type
+
+[DONE] Asset workflow
+  - Asset-based materials, textures, scripts, models, animations, and prefabs
+  - Drag assets into matching Inspector fields
+  - Drag supported models into the hierarchy
+  - Rename, duplicate, delete, and reveal assets on disk
+  - Folder-specific Create/Import/Open Folder controls
+  - Cohesive folder and file-type icons with thumbnails
+
+[DONE] Rendering and components
+  - Mesh renderer and material assignment/removal
+  - PS2-portable built-in material family: Lit/Unlit with Opaque/Cutout/Transparent surfaces
+  - Alpha cutoff, transparent render ordering, and double-sided material support
+  - Per-scene background, ambient lighting, and PS2-style linear fog settings
+  - Conservative camera-frustum culling with visible/culled performance statistics
+  - Project-level Performance/Balanced/Quality/Custom render settings
+  - Internal render resolution, aspect-correct presentation, texture filtering, fog, culling, and light limits
+  - Cameras plus selected-camera preview
+  - Camera collision initial-overlap correction implemented on desktop/PS2:
+    separating paths may clear a radius overlap without collapsing follow distance;
+    inward/tangent, embedded, short-endpoint and second-obstacle guards retained.
+    Desktop/native regression tests pass; user confirmed the camera fix works.
+  - PS2 player movement now sweeps the full capsule against solid box/mesh walls
+    and slides along them instead of allowing Mimi's body to sink inside.
+    Walkable ground/slope faces stay under the ground solver so the capsule does
+    not snag on flat terrain. Native contact, slide, terrain and recovery tests pass.
+    User reports no current collision complaints after the terrain correction.
+  - Directional, point, and spot lights
+  - Box colliders and triggers
+  - Selection silhouette around the visible outer edge of meshes
+  - Audio source playback, looping, pitch, and spatial controls
+  - Per-texture PS2 import profiles for size, color format, filtering, and mipmaps
+  - Live and build-time texture VRAM estimates with a largest-first budget report
+  - Export-ready R2 texture packages with native-sized texels, palettes, and mip chains
+  - Runtime UI foundation: screen-space Canvas, Panel, and Button components with
+    reference-resolution scaling, editable styling, Play Mode hover/press/click state,
+    scene serialization, and a script-facing ConsumeClick API
+
+[DONE] Scripting and runtime
+  - C# script assets and Script components
+  - Editable public script fields
+  - Component reset/copy/remove menus
+  - Collision and trigger enter/stay/exit callbacks
+  - Scene loading from scripts
+  - Selectable/copyable runtime Console output
+  - Animation-event callbacks to scripts
+
+[DONE] Character animation foundation
+  - FBX, GLB/glTF, and OBJ model import paths
+  - Skeletal model assets and bone hierarchy display
+  - CPU-skinned mesh deformation
+  - External humanoid animation import
+  - Skeleton and animation bone-mapping windows
+  - Retargeting between compatible humanoid skeletons
+  - Animator Controller graph with add/delete/connect/default-state tools
+  - Idle, walk, backward-walk, run, and jump states
+  - Crossfades between animation states
+  - Animation events and jump-launch synchronization
+  - Animated character prefabs survive scene save/reload
+
+[DONE] Input foundation
+  - Project-level named Input Actions
+  - Button, 1D axis, and 2D axis bindings
+  - Keyboard bindings, controller indices, dead zones, and inversion settings
+  - Configurable Player Controller action names
+  - Keyboard movement relative to the object's forward direction
+  - Configurable movement/turn inversion, sprinting, and jumping
+  - Player movement acceleration/deceleration and analog input strength
+  - Air control, coyote time, and buffered jump input
+  - Editor gameplay input isolated to the focused Game view during Play Mode
+  - Configurable Animator parameter names and safe jump-event fallback
+
+
+PS2 PERFORMANCE CHECKPOINT - SEPTEMBER 2, 2026
+=============================================
+
+[DONE] Native game export and playtesting are beyond the initial probe stage.
+  - Bootable ISO workflow has been exercised in PCSX2 and on a real PS2 via
+    PSBBN/OPL. Recent detailed performance measurements below are PCSX2 results.
+  - Scene changes, animated characters, controller menus, interactions/dialogue,
+    and imported game fonts have been exercised during iterative testing.
+
+[DONE] Stable renderer optimization pass
+  - One XGKICK per bounded 24-triangle VU job; non-overlapping VU memory banks.
+  - Up to 16 jobs per VIF DMA chain, with compatibility for older larger meshlets.
+  - Per-object packed vertex scratch cache; aligned 128-bit copies into job inputs.
+  - Removed redundant per-job input clearing after auditing VU reads and testing
+    all 1,536 supported vertex/triangle-count combinations with reused buffers.
+  - Object/camera transforms composed once per object; shared reciprocal depth.
+  - Bone-weight lookup replaces repeated byte-to-float divisions during skinning.
+  - Fog-range reciprocal calculated once per frame; alpha clamped once per object.
+  - Numerical transform tests and generated EE assembly checks support these changes.
+  - User testing reports stable rendering after the accepted changes. Earlier VU
+    holes/flashes/browser exits were not accepted as a usable checkpoint.
+  - The slower per-vertex blended-matrix skinning experiment was reverted.
+
+[DONE] Measured stress-test baseline established
+  - With the unoptimized high-poly body enabled, latest comparable readout:
+    SKN 14.6 ms, VTX 11.1 ms, TRI 2.8 ms, PREP 6.9 ms,
+    SEND 1.4 ms, SET 0.2 ms, ALL 37.7 ms; displayed FPS about 20 in this view.
+  - With that body disabled: SKN 2.8 ms, VTX 1.9 ms, TRI 4.0 ms,
+    ALL 9.3 ms and displayed 60 FPS in the tested scene/view.
+  - These are scene/view-specific measurements, not a guarantee of 60 FPS for
+    every level or on real hardware. ALL measures rendering, not the entire game
+    frame. PREP/SEND/SET further explain time within ALL; do not add them to ALL.
+  - Keep the current native profiler available for future before/after comparisons.
+
+[DEFERRED] Final main-character body optimization (game asset work)
+  - The high-poly body is the intended character's unfinished base model and a
+    useful worst-case test. It is deliberately not optimized yet.
+  - Later target roughly 5-6k polygons, then measure actual exported vertex count
+    and bone influences as well as triangle count. No automatic reduction now.
+  - Re-enable and retest it when the optimized asset is ready; no reimport or
+    art changes are required to keep the current engine checkpoint.
+
+
+IN PROGRESS / KNOWN ISSUES
+==========================
+
+[TODO] Controller compatibility
+  - The PS1/PS2 USB adapter is detected, but its axes and buttons remain frozen.
+  - Silk.NET event/polling and Windows WinMM fallbacks have been attempted.
+  - Add a Windows Raw Input/HID path or a remapping/calibration layer later.
+  - Verify controller input in both the editor debugger and standalone builds.
+
+[TODO] Animation polish
+  - PS2 idle sprint jitter fix implemented: Sprinting now requires movement above
+    the same threshold as Moving, matching desktop intent. Holding R1 at rest no
+    longer supplies contradictory Idle/Run conditions. Native transition regression
+    passes; user confirmed the fix works in-game. Raw input for custom scripts
+    remains working alongside the corrected player animation.
+  - Reduce the visible delay between jump input and the jump animation.
+  - Test retargeting with more skeletons, proportions, bone names, and FBX exporters.
+  - Add clearer validation for missing, duplicate, or incompatible mapped bones.
+  - Test root motion and decide whether it should be supported or deliberately ignored.
+
+[TODO] Audio validation
+  - Spatial audio verified by the user in PCSX2 and on actual PS2 hardware.
+  - Confirm min/max distance behavior is obvious and correct in standalone builds.
+
+[TODO] PS2 follow-up validation
+  - Latest renderer/fog build playtested on actual PS2: user reports it holds up
+    very well with Mimi restored as the main player character. Hardware checkpoint
+    accepted for this tested setup; no exact hardware FPS measurement supplied.
+  - Test varied camera angles, scene transitions, menus, dialogue, and several
+    animated objects together; preserve the current no-corruption checkpoint.
+  - VU fog correction implemented; user confirmed cube/character distance fade
+    in PCSX2, followed by a successful overall real-PS2 playtest with Mimi.
+    PACKED XYZF2 requires both Z24 and F8 shifted left four bits in their lanes;
+    the previous implementation shifted fog alone, producing incorrect depth.
+    Exhaustive Z24 decoding/CPU parity tests and VU input reuse tests pass.
+    Still check fog toggles, transparency, scene changes, extended stability,
+    and measured FPS. The basic distance-fade visual check has passed.
+  - Monitor EE memory use: the packed-vertex scratch cache costs 48 bytes per
+    vertex, is reused across object draws, and falls back if allocation fails.
+  - Make further performance changes only against measured, comparable views.
+    Skinning and projection are the largest remaining stages in the stress test.
+
+
+NEXT ENGINE MILESTONES
+======================
+
+[IN PROGRESS] Custom C# scripts in PS2 builds
+  - First restricted translation slice implemented: Update-based constant Position/
+    Rotation motion, public float defaults and per-instance Inspector overrides.
+  - Roslyn validates source without executing it; R2SC v29 stores native rates.
+    Older scenes without translated scripts retain their package version.
+  - Restricted to standalone decorative meshes (no hierarchy, physics, player,
+    animator, or other components) until those interactions are supported/tested.
+  - Unsupported scripts now produce explicit build warnings and a per-script
+    R2Data/ps2-script-report.json. Builds still complete; unsupported logic is skipped.
+  - Existing TriggerSceneLoader filename shortcut is labeled a legacy adapter,
+    not full script translation. CollisionTest callbacks remain unsupported.
+  - Compiler/rejection, package-layout, native motion tests and builds pass.
+    User confirmed the Ps2Spin in-game test works. The confirmation did not specify
+    emulator versus hardware; changed Speed, pause/resume, and reload checks remain
+    open. Existing scenes and Mimi were not modified by this implementation.
+  - Timer/condition slice implemented: one private elapsed float, increment before
+    one if/optional else motion branch; six comparisons against constants/public
+    float settings. R2SC v30 adds per-instance timer/else records; v29 spin remains.
+  - Ps2DelayedMove waits two gameplay seconds, then moves along X. Timer state is
+    per instance, pauses with gameplay menus, and resets on scene reload. Native
+    timer storage is allocated only for v30 scenes and released on replacement.
+  - Timer compiler/rejection, threshold boundaries, isolation, reload-state,
+    mixed-version package tests and builds pass. User confirmed delayed movement,
+    pausing, and scene reload restoring the initial position and restarting the delay.
+    Changed settings, independent timers, and else branches still need playtesting.
+    Same-scene checkpoint loading does not restart timers; it is not a scene reload.
+  - Held-input slice implemented: one if (RuntimeInput.IsActionDown("Name")) with
+    optional else motion. Uses project Button bindings (controller index 0-15),
+    case-insensitive last-match lookup and the implicit Interact default.
+  - R2SC v31 extends the condition record with held-input operation 7; native
+    mapping matches player controls. No input consumption or edge history.
+    Unsupported actions/bindings warn; v29/v30 scripts remain supported.
+  - Ps2ButtonSpin uses Sprint (default PS2 R1). Compiler/binding/package and native
+    held/released/malformed-record/timer-regression tests pass; playtest pending.
+  - Held input confirmed working by user; idle sprint animation conflict fixed
+    and verified separately without consuming script input.
+  - One-shot WasActionPressed support implemented in R2SC v32 (operation 8):
+    fixed Position/Rotation increments, no deltaTime or else. Shared script edge
+    sampling is independent of player/UI state; load/resume/reconnect seed a
+    baseline to avoid accidental presses. Existing held/timer scripts unchanged.
+  - Ps2PressTurn turns 90 degrees per Sprint press. Compiler/package/native edge
+    and compatibility tests pass; user confirmed the one-shot sample works in-game.
+  - One-shot sample confirmed working in-game by user.
+  - First OnTriggerEnter slice implemented (R2SC v33/opcode 9): required explicit
+    PlayerController filter, fixed rotation steps on the owner, one centered
+    trigger Box Collider, unique active player with Capsule/Box collider.
+  - Mutual collision masks cooked; native existing axis-aligned trigger detection
+    runs after player movement. Entry latch suppresses repeats until exit/re-entry;
+    scene reload resets it. General collider-pair callbacks remain unsupported.
+  - Ps2TriggerTurn defaults to 45 degrees. Compiler/target/mask/package/native
+    entry-state regression tests pass; user confirmed the sample works as described:
+    one turn on entry, no repeats while inside, another turn after exit/re-entry.
+  - Exit callbacks implemented: OnTriggerExit alone or paired with OnTriggerEnter.
+    R2SC v34 operations 10/11 reuse the condition record and one occupancy latch.
+    Both callbacks require the player filter; only fixed self-rotation is supported.
+  - Ps2TriggerEnterExit turns +45 on entry and -45 on exit. Compiler/package/native
+    paired-cycle, stay suppression, reload/mask and entry-regression tests pass;
+    user confirmed the paired callback works after removing a stale old-script
+    override. No scenes or existing samples were altered by implementation.
+  - Inspector script-reassignment fix: changing to a different asset now clears
+    old field overrides inside the undoable edit. Same-asset drops and asset renames
+    preserve values. Assignment and serialization undo/redo regressions pass.
+  - Next: validate exit callbacks before extending state/callback support.
+    Timer resets, nested conditions, arbitrary C#, general callbacks, and spawning are NOT done.
+  - See R2Engine.PS2/SCRIPTING.md for the exact supported syntax and test steps.
+
+[TODO] Physics expansion
+  - Rigid bodies, gravity, mass, bounce, friction, and dynamic impulse transfer are complete.
+  - Character slope climbing, step-up movement, and downhill ground snapping are complete.
+  - Project-defined collision layers and per-collider masks are complete.
+  - Add more collider shapes as needed.
+  - Capsule Collider and static triangle Mesh Collider are complete.
+  - Stable box resting/stacking on triangle meshes and persistent resting-contact events are complete.
+  - Keep the runtime appropriate for PS2-class project budgets.
+
+[TODO] Rendering pipeline
+  - Render settings and quality presets are complete.
+  - Frustum culling and practical visibility statistics are complete.
+  - Transparent-material handling and render ordering are complete.
+  - Basic fog and environment/ambient settings are complete.
+  - Live draw-call, object, triangle, texture, light, skinning, and CPU-render statistics are complete.
+  - Texture conversion, per-texture VRAM estimates, build totals, and budget warnings are complete.
+  - R2 texture package export supports 32-bit, 16-bit, 8-bit indexed, and 4-bit indexed payloads.
+  - Native Canvas/Panel/Button cooking, rendering, and controller focus navigation are complete.
+  - Continue PS2 validation and finish VU fog support listed above.
+
+[TODO] Animation Controller completion
+  - Editable typed parameters, defaults, and type-aware transition conditions are complete.
+  - Improve transition visualization and selection.
+  - Add animation preview/scrubbing where useful.
+  - Add controller duplication and reusable controller assets if not already complete.
+
+[TODO] Input system completion
+  - Add controller calibration/remapping UI.
+  - Add multiple-controller/player assignment.
+  - Add runtime rebinding support.
+  - Native PS2 controller polling uses PS2SDK libpad; that API choice is complete.
+    Desktop USB-adapter compatibility is deferred unless it blocks PS2 development.
+
+[TODO] Asset/import pipeline hardening
+  - Source-linked reimport and editable model/animation import settings are available.
+  - Make all importer failures non-crashing and clearly reported in the Console.
+  - Texture and static OBJ source tracking, manual reimport, and Refresh-time change detection are complete.
+  - Source-linked WAV import, manual reimport, and Refresh-time change detection are complete.
+  - Refresh-time source detection now covers textures, OBJ, WAV, skeletal models, and humanoid animations.
+  - Missing scene/material references are validated on scene open and Refresh and reported safely in the Console.
+
+[TODO] Scene and prefab workflow
+  - Structural prefab override detection, child-aware indicators, Apply, and Revert are complete.
+  - Multi-object selection/editing and visible-row Shift-range selection are complete.
+  - Hierarchy name/component search and filtering are complete.
+  - Add safer missing-reference reporting.
+
+[TODO] Packaging and platform work
+  - Historical implementation milestones below record the backend's progression;
+    the September 2 checkpoint above takes precedence for current performance
+    and known limitations. Further packaging/backend cleanup remains open.
+  - Dependency-aware packaging copies only assets referenced by configured build scenes.
+  - Categorized asset and texture manifests, missing-reference validation, and budget warnings are complete.
+  - Create fuller release/export settings beyond the current Windows Development/Release choice.
+  - Portable R2Engine.Runtime library and runtime platform service boundary are established.
+  - Runtime file reads, clock/log services, and desktop input polling now route through platform interfaces.
+  - Desktop OpenGL/OpenAL/Input backends are identified behind the platform service registry.
+  - Core scene graph ownership has moved into R2Engine.Runtime: scenes, game objects,
+    transforms, cameras, lights, materials, colliders, runtime input, scene requests,
+    skeleton bones, and the script-facing component/runtime base now build there.
+  - Runtime physics ownership is complete: mesh data/components, primitive meshes,
+    rigid bodies, collision solving, static triangle collision, and the built-in
+    character controller now build in R2Engine.Runtime.
+  - Runtime mesh/material loading uses an asset-provider boundary instead of reaching
+    into editor import caches, and character animation parameters use a small runtime
+    interface.
+  - Animation runtime ownership is complete: transform clips, Animator Controllers,
+    typed parameters/transitions, skeletal assets and clips, humanoid mappings,
+    retargeting, crossfades, animation events, and Animator playback now build in
+    R2Engine.Runtime.
+  - Runtime animation resolves project assets through the asset-provider boundary;
+    FBX/glTF import and editor configuration windows remain desktop tooling.
+  - Standalone player no longer references R2Engine.Editor. Windows games now depend
+    on R2Engine.Runtime plus a dedicated R2Engine.Desktop host for OpenGL, OpenAL,
+    Silk input, serialization, asset loading, and runtime script compilation.
+  - Platform-neutral scene-renderer contract is established in R2Engine.Runtime.
+    Standalone rendering now routes through RuntimePlatform's selected render backend;
+    the OpenGL SceneRenderer implementation remains in R2Engine.Desktop.
+  - Platform-neutral audio playback contract is established. AudioSource is runtime-
+    owned and routes Play/Pause/Stop/one-shot requests through RuntimePlatform, while
+    OpenAL buffers, source handles, WAV playback, listener updates, looping, pitch,
+    gain, and spatial attenuation remain inside R2Engine.Desktop.
+  - R2Engine.Runtime contains no Silk.NET, OpenGL, OpenAL, or ImGui package dependency.
+  - Split the remaining shared desktop source links into permanent backend-owned files.
+    The PS2 backend/toolchain proof and subsequent playable ISO workflow are complete.
+  - Native R2Engine.PS2 target, PS2SDK/gsKit Makefile, toolchain validator, platform
+    shell, and 240-primitive GS/DMA benchmark source are established.
+  - Official ps2dev v2.0.0 toolchain is installed in the PSBBN WSL environment.
+  - The native GS/DMA probe compiles and links successfully as a verified ELF32
+    little-endian MIPS executable (about 190 KB total loaded sections).
+  - PCSX2 at E:\PCSX2 runs the generated ELF correctly: GS output, the animated
+    20x12 primitive grid, and moving heartbeat marker are visually validated.
+  - PS2SDK controller polling, DualShock analog-mode negotiation, both sticks, and
+    buttons are visually validated in PCSX2 through the asset-free debug HUD.
+  - Native R2TX v1 parsing, RGBA32 GS VRAM upload, and textured-sprite submission
+    are visually validated in PCSX2.
+  - A bounded native textured-mesh submission path with CPU transform/projection,
+    back-face rejection, per-vertex depth, and perspective-correct STQ mapping is
+    visually validated in PCSX2.
+  - Editor builds now cook referenced OBJ/r2skel assets into versioned R2MS packages
+    with 32-byte vertices, 16-bit indices, bounds, size limits, and a mesh manifest.
+  - The native PS2 backend validates and loads the matching R2MS layout; emulator
+    package-driven mesh submission is visually validated in PCSX2.
+  - Editor builds cook R2SC v1 scene packages with compact mesh/texture tables,
+    world transforms, material tint, and bounded native instance records; native
+    parsing and transformed submission are visually validated in PCSX2.
+  - PS2SDK HostFS loading is validated in PCSX2: cooked R2SC data loads externally
+    from the ELF-relative `bin/assets` directory with a safe embedded fallback.
+  - External scene dependency resolution now follows relative R2MS/R2TX table entries;
+    the complete disk-backed R2SC -> R2MS/R2TX chain is validated in PCSX2.
+  - External R2TX RGBA16 parsing and A1B5G5R5 upload/rendering are validated in PCSX2.
+  - External R2TX indexed-8 and indexed-4 CLUT rendering are validated in PCSX2;
+    every texture format currently emitted by the editor is supported natively.
+  - Native ambient/directional vertex lighting uses cooked normals and R2SC material
+    tint; animated face lighting and distinct instance tints are validated in PCSX2.
+  - R2SC v2 cooks the scene's primary camera position, rotation, FOV, clip planes,
+    and reference aspect; the native renderer consumes it with full XYZ instance
+    rotation and nonuniform scale while retaining R2SC v1 fallback compatibility.
+  - The PCSX2 launcher can stage a selected editor-cooked R2SC scene and its R2MS/R2TX
+    package trees into the ELF HostFS root; the handcrafted probe remains the default.
+  - The editor File menu includes Build & Run PS2 (PCSX2), which saves and cooks the
+    configured startup scene, builds the native PS2 ELF, stages its packages, and
+    launches PCSX2 without requiring a manual PowerShell command.
+  - Native cooked scenes use bounded arrays of up to 16 meshes and 16 textures;
+    instances resolve their own resource slots and untextured meshes use vertex-lit
+    material color rather than an unrelated texture.
+  - Native reciprocal depth is clamped to the configured PSMZ16S range so separate
+    scene meshes cannot wrap depth values and render distant surfaces in front.
+  - CPU submission clips triangles crossing the camera near plane and interpolates
+    position, normals, and UVs instead of dropping whole foreground triangles.
+  - R2SC v3 cooks scene background, ambient color, and the first directional light's
+    direction/color/intensity; native vertex lighting consumes those values per channel.
+  - R2SC v4 cooks linear fog color/start/end/enabled state; the native PS2 path applies
+    optional depth-interpolated fog as a GS alpha overlay pass.
+  - R2SC v5 carries per-instance Lit/Unlit, surface, double-sided, fog-reception, and
+    alpha-cutoff material settings; native lighting/culling/fog obey the applicable
+    flags. R2TX v2 carries nearest/bilinear filtering into gsKit texture resources.
+  - The native PS2 material path now uses cooked alpha cutoff for GS cutout testing,
+    preserves material/texture alpha, sorts blended transparent instances far-to-near
+    after opaque/cutout geometry, and retains depth testing.
+  - Native fog now ramps correctly from the cooked start/end distances, and explicit
+    GS blend-state isolation keeps fog, cutout textures, and transparent materials
+    from corrupting one another. PS2 lighting applies display-space correction so
+    cooked ambient values remain readable rather than rendering nearly black.
+  - Native rendering uses the GS 24-bit depth buffer so close third-person
+    characters and terrain do not overwrite one another through 16-bit Z aliasing.
+  - Earlier PS2 rendering checkpoint: full six-plane CPU frustum clipping with
+    triangle outcode fast paths holds 60 FPS in PCSX2, stabilizes large textured
+    terrain near the camera, and cooks all active external and built-in mesh objects.
+    This was an earlier fog-disabled checkpoint; current CPU rendering uses fog
+    in its primary pass. The corrected VU-path fog's cube/character distance fade
+    is user-validated in PCSX2; broader validation remains open (see above).
+  - The editor cooks the default retargeted character state into a bounded R2AN v1
+    pose stream (currently 12 FPS), and the native PS2 backend loads, loops, and
+    interpolates it while preserving Mimi's materials and cutout transparency.
+    Idle playback is visually validated in PCSX2 at a stable displayed 60 FPS.
+  - R2AN v2 packages the controller's Idle, Walk, Run, Backward Walk, and Jump
+    states into one 12 FPS pose stream. Native PS2 input selects and crossfades
+    those states while moving, turning, sprinting, and jumping Mimi.
+  - The native test fly camera is disconnected for cooked scenes. The authored
+    child-camera offset now follows Mimi's position, jump height, and yaw exactly;
+    the validated test mapping uses left-stick forward/back, inverted right-stick
+    turning, R1 sprint, and Cross jump.
+  - R2SC v8 cooks the active Player Controller and its named Project Input Actions.
+    Native PS2 movement now uses the configured axes, buttons, dead zones,
+    inversions, strafe, speeds, sprint multiplier, jump strength, and feature toggles.
+  - Native PS2 gameplay, physics, animation, and probe motion now use measured
+    runtime frame time with bounded spike protection instead of a fixed 60 Hz step.
+  - R2SC v9 cooks the first active play-on-start Audio Source. The native PS2
+    backend streams PCM WAV through PS2SDK audsrv with loop, volume, and pitch,
+    and matches desktop linear Min/Max Distance attenuation from the active camera.
+  - Native PS2 memory-card services expose versioned, checksummed blob saves with
+    a flushed recovery copy and MCSERV-compatible two-copy commit. Scene-aware named
+    checkpoints restore the correct cooked scene, character, and camera transforms.
+    R2SC v10 cooks editor Save Point components for trigger-enter autosaves, while
+    public native checkpoint calls support future pause/title menu save and load UI.
+  - R2SC v11 cooks opt-in Persistent Object components with validated stable Save IDs;
+    named checkpoints capture and restore up to 64 object transforms alongside the
+    scene, player, and camera state.
+  - R2SC v12 extends Persistent Objects with optional active-state, integer, and
+    boolean checkpoint data plus native PS2 get/set APIs for gameplay systems.
+  - R2SC v13 cooks Canvas, Panel, and Button layouts into the native PS2 backend.
+    The GS renders reference-resolution-scaled UI, while D-pad/left-stick focus,
+    Cross activation, and a consumable button event API provide controller input.
+  - R2SC v14 adds toggleable Canvas menus, per-Canvas optional gameplay pausing,
+    and built-in Close Menu, Save Checkpoint, and Load Checkpoint button actions.
+  - Real-hardware boot/playtesting has occurred via PSBBN/OPL. Validation and
+    performance measurement of the latest optimized renderer remain pending.
+  - Move SceneRenderer/OpenGL and AudioSystem/OpenAL behind full backend implementations afterward.
+  - PS2 platform abstraction, working toolchain, initial benchmark, and a demanding
+    animated-body stress test are established; retain them as regression baselines.
+
+[TODO] Reliability and cleanup
+  - Add automated smoke tests for scene load/save, prefab round trips, and builds.
+  - Add regression tests for animation retargeting and collision enter/exit.
+  - Replace temporary diagnostic logging with useful optional debug views.
+  - Keep startup/build operations responsive and cancellable.
+
+
+TEST PROJECT ONLY (NOT CORE ENGINE FEATURES)
+============================================
+
+The current Mimi test scenes, movement scripts, trigger scene loader, collision test,
+SpinScript, and footstep/event test scripts exist to verify engine features. Game-
+specific mechanics, levels, effects, and final character behavior can wait until the
+engine systems they depend on are stable.
+
+
+THE SIMPLE VERSION - WHAT'S DONE AND WHAT'S NEXT
+================================================
+
+THE BIG WIN
+  [DONE] We can build the game into an ISO and play it on a PS2.
+  [DONE] The current test scene hits 60 FPS in PCSX2 with the huge body disabled.
+  [DONE] Even with that body enabled, the engine is much faster than when we
+         started. The latest accepted renderer is no longer doing the broken
+         triangles, random flashes, or boot-to-browser thing from the failed tests.
+  [DONE] Calling this a good stopping point for the big performance push.
+
+NEXT TIME WE WANT TO TEST SOMETHING
+  [DONE] Cube texture-edge fix confirmed in PCSX2 by the user. This was texture
+      sizing, not fog: world exports now fill the PS2 sampling rectangle.
+      Original artwork and UI-only sizing stay intact.
+  [DONE] Latest build holds up on the actual PS2 with Mimi as the player!
+      User-confirmed hardware playtest; exact hardware FPS not recorded.
+  [ ] Run around, change scenes, open/close menus, talk to Munch, and try several
+      animated characters together. Make sure everything stays solid.
+  [DONE] Cube and character fade into fog correctly in PCSX2, confirmed in-game.
+  [ ] Give fog a longer workout: toggle it, check transparent objects, change
+      scenes, and watch for flashes or FPS drops.
+  [ ] Keep an eye on memory as we add more stuff. Fast does not mean unlimited.
+
+YOUR MAIN CHARACTER - LATER, NOT RIGHT NOW
+  [LATER] Finish/optimize the high-poly base body when you're ready.
+          The rough plan is a 5-6k-poly game version. Keep the big one for stress tests.
+  [LATER] Test that finished version to see what it really costs. We don't need
+          to keep chasing performance on unfinished art forever.
+
+OTHER ENGINE JOBS STILL ON THE LIST
+  [DONE] Camera wall-contact fix confirmed by the user.
+  [DONE] Capsule wall blocking and terrain correction accepted so far:
+      user reports no current collision complaints. Revisit if new issues appear.
+  [DONE] A real door: user confirmed it works on PS2!
+      Create one through Hierarchy right-click -> Sliding Doorway.
+      Place the parent at ground level, approach, press Cross, walk through.
+      Built-in door component implemented on desktop/PS2 with prompt and solid
+      moving collider. Opens once, stays open until scene reload. Automated tests pass.
+      Future gameplay work should be useful interactions, not more manual cube permutations.
+  [DONE] First translated custom script: user confirms the Ps2Spin test works!
+      This is our first small custom-script slice, not full C# support yet.
+  [ ] Check changed Speed, pause/resume, and scene reload with Ps2Spin.
+  [DONE] Delayed cube moves, pauses, and resets correctly on scene reload:
+      user confirmed it returns to its original position, waits, then slides again.
+  [ ] Try changed Delay/Speed, two independent timers, and an else branch.
+      Keep the spin cube too so we can check both scripts together.
+  [DONE] User confirmed Ps2ButtonSpin works with held input.
+  [ ] Recheck pausing and scene changes with all three script cubes.
+  [DONE] User confirmed Ps2PressTurn works in-game: one turn per press.
+  [ ] Explicitly check press behavior across menus, reloads, and pad reconnects.
+  [DONE] Ps2TriggerTurn verified by user: one 45-degree turn on entry, no repeats
+      while inside, and another turn after leaving and re-entering.
+  [DONE] User confirmed Ps2TriggerEnterExit works after clearing stale script fields.
+  [DONE] User confirmed the Inspector script-reassignment fix works.
+  [ ] Check paired callback pause/reload behavior.
+  [DONE] User confirmed Ps2ToggleSpin seems good in-game.
+      Holding R1 should not repeatedly switch it. Each cube remembers its own state.
+      Implemented in R2SC v35; compiler/package and native tests pass.
+  [DONE] User confirmed Ps2LoopMove works as expected, including the requested tests.
+      No collider: this is not a moving platform.
+      R2SC v36 repeating timer implemented; compiler/package and native tests pass.
+  [DONE] User confirmed Ps2TwoButtonTurn works as expected.
+      Hold either: no repeats. Press both together: the turns cancel out.
+      Cross can also make Mimi jump. R2SC v37 implemented and automated tests pass.
+  [DONE] User confirmed Ps2ReleaseTurn looks good in-game.
+      Releasing during pause or unplugging the pad should not cause a stray PS2 turn.
+      R2SC v38 implemented, including the desktop WasActionReleased API; tests pass.
+  [DONE] User confirmed Ps2PressReleaseTurn works perfectly.
+      Repeat a few times. A release during pause is ignored, not replayed on resume.
+      R2SC v39 supports paired press/release actions; automated tests pass.
+  [DONE] User confirmed Ps2TwoButtonMove works perfectly.
+      Both held should cancel at default speeds; release both to stop.
+      Fresh cube, no collider. R2SC v40 paired held actions implemented; tests pass.
+  [DONE] User confirmed Ps2StartSpin spins with its 45-degree tilt.
+      Pause/resume should not add tilt. Reload should reset and apply one fresh tilt.
+      R2SC v41 Start-only / Start + unconditional Update implemented; tests pass.
+  [DONE] User confirmed Ps2StartButtonSpin works.
+      Repeated holds must not add more tilt. Try pause/resume and scene reload.
+      R2SC v42 Start + held Update implemented; compiler/package/native tests pass.
+  [DONE] User confirmed Ps2StartDelayedSpin works as intended.
+      Pause should freeze the wait/spin. Scene reload should restart the delay.
+      R2SC v43 independent startup/timer records implemented and tested.
+  [DONE] User confirmed Ps2StartToggleSpin worked.
+      Holding should not repeatedly toggle or add tilt. Reload starts stopped again.
+      Reuses v43 startup records; compiler/package/native combination tests pass.
+  [DONE] User confirmed the idle-sprint jitter fix: player animation and the
+      held-button cube script work correctly together.
+  [LATER] Windows build polish, Steam release work, and PC controller/USB-adapter
+      support. PS2 is the priority; only revisit early if necessary for PS2 work.
+  [ ] Polish jump-animation timing and test more character skeletons.
+  [ ] Make broken imports/missing files easier to understand and harder to crash.
+  [NEXT PLAYTEST] OBJ texture-origin fix implemented in the engine.
+      Standard OBJ V coordinates are now converted once during import, so Blender
+      meshes render with the same orientation in the editor and PS2 export.
+      Reopen the apartment scene and verify the inside-facing room texture.
+      Keep the apartment texture Max Size at 256 for the PS2 VRAM budget.
+  [DONE] Real OBJ submeshes and multiple material slots confirmed on PS2.
+      OBJ usemtl boundaries and names are preserved, the editor draws each index
+      range separately, Inspector exposes one .r2mat field per named slot, and
+      scene files persist all assignments. R2SC v45 exports one compact draw per
+      submesh while retaining one gameplay object for transform, collision,
+      animation, scripts, and saves. User confirmed distinct materials render in
+      the console build; exporter/native builds and regressions pass.
+  [NEXT PLAYTEST] Material texture Tiling and Offset implemented end-to-end.
+      Defaults preserve old materials. Editor shader and R2SC v46 apply the same
+      per-material UV transform. Native GS world sampling now explicitly uses
+      repeat while UI returns to clamp; serialization/package/native builds pass.
+  [DONE] Spatial audio works as intended in PCSX2 and on actual PS2 hardware,
+      confirmed by the user.
+  [ ] Expand tests for saves and prefabs.
+  [DONE] PS2 Memory Card Title and Icon verified by the user on console:
+      gem/title display correctly and the entry no longer appears corrupted.
+      Project Settings > Build has PS2 Memory Card Title and Icon.
+      Blank title uses Product Name; blank icon uses the built-in teal 3D gem.
+      Custom icons must be native PS2 .icn/.ico/.icon files, not PNG/Windows ICO.
+      Rebuild, save in-game, then check the PS2 browser title/icon and reload progress.
+      Existing /R2ENGINE slots remain readable; presentation files are added separately.
+      Export validation/settings tests and editor/player/native builds pass.
+  [NEXT PLAYTEST] Per-game Save ID and opt-in legacy import implemented.
+      New saves use /R2-<ID>; editor generates/persists an ID once. Keep it stable.
+      Enable Import Legacy R2ENGINE Saves for this existing game, rebuild, load,
+      and save. Restart and reload, then verify with legacy import switched off.
+      Legacy files remain untouched. Import is blocked if new files are corrupt
+      rather than absent. Native identity/migration tests and builds pass.
+  [DONE] Sliding-door checkpoint state confirmed working perfectly by the user.
+      Partly opening and fully open state is preserved; old checkpoint payloads
+      remain loadable. Corrupt/stale records cannot move a different door.
+  [NEXT PLAYTEST] Translated scripts now accept PersistentObject on PS2.
+      Save Transform preserves scripted position/rotation/scale; Save Boolean
+      preserves toggle state; Save Integer preserves timer phase in milliseconds.
+      Incompatible flag/script combinations fail export clearly. Native state and
+      full compiler/export regression tests pass.
+  [DONE] Removed the PS2 on-screen performance/debug text from normal gameplay.
+      Internal profiling remains available through the console for engine work.
+  [ ] Add more physics/input features when the game actually needs them.
+
+GROUND RULES FOR NEW STUFF
+  - Keep the editor uncluttered: object/asset settings in the Inspector, creation
+    actions in the relevant right-click menu, and only useful essentials on bars.
+  - Test one performance change at a time. Keep wins; undo slower or broken ones.
+  - The 60 FPS result is for our tested scene, not a promise for every future level.
+  - No rush to optimize the character model today. This is already a huge win.
+
+SIMPLE VERSION FOR ME
+  [NEXT] Reopen the apartment room. Its texture should no longer be black.
+  [NEXT] Leave apt.png at Max Size 256 before testing this room on PS2.
+  [LATER] If an older OBJ now looks upside-down, re-export it normally from Blender;
+          the engine now follows the standard OBJ texture direction.
+  [DONE] Multi-material model renders correctly on PS2 and remains one object.
+  [NEXT] On a floor or wall material, try Tiling 2,2 and Offset 0,0 in the
+         Mesh Renderer. Save/reopen, then build PS2 and confirm it repeats.

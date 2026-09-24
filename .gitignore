@@ -1,0 +1,38 @@
+# .NET and native build outputs
+**/bin/
+**/obj/
+Builds/
+artifacts/
+build-validation/
+.standalone-build-cache/
+.codex-build/
+.codex-obj/
+.verify-build/
+
+# IDE and per-user state
+.idea/
+.vs/
+.vscode/
+*.user
+*.suo
+*.DotSettings.user
+imgui.ini
+__pycache__/
+
+# Native intermediate files
+*.o
+*.elf
+*.map
+
+# OS/editor temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*~
+
+# Local emulator and repository-recovery scratch
+*.TBP
+.git-sandbox-backup/
+ps2-smb-*.txt
+PS2SMB/
