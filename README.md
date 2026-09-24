@@ -20,7 +20,18 @@ The goal is to make building a small PS2-style game approachable. You can create
 
 R2Engine is an early, actively developed project. It is usable for experiments and small games, but workflows, file formats, and features may still change. Expect rough edges and test your work regularly.
 
-This repository is currently intended for developers and curious testers. A packaged release and beginner-friendly installer are planned for a later step.
+The current portable preview is intended for developers, curious testers, and small experimental projects.
+
+## Known limitations
+
+- The Hub and editor currently target 64-bit Windows. Other desktop platforms are not packaged or supported yet.
+- Releases are unsigned, so Windows may show a security warning after download.
+- There is no automatic updater. Portable releases must be downloaded and extracted manually.
+- The project is pre-release software. Scene formats, project settings, scripting APIs, and editor workflows may change between versions.
+- The native PS2 runtime does not yet have complete feature parity with Windows. Always test console-targeted scenes in PCSX2 and, when possible, on real hardware.
+- PS2 builds require a separately installed PS2DEV environment with PS2SDK and gsKit. Final ISO packaging also relies on additional tools documented in the PS2 guide.
+- A stock PlayStation 2 cannot boot unsigned homebrew software by itself. Real-hardware testing requires an appropriate homebrew launch method.
+- Building R2Engine from source requires the .NET 10 SDK. The portable release includes the runtime needed for normal Hub and editor use.
 
 ## What it includes
 
