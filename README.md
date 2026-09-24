@@ -77,6 +77,10 @@ The complete manual is available in [Docs/Manual](Docs/Manual).
 
 R2Engine is still taking shape. Bug reports, testing notes, and thoughtful feedback are welcome. Contribution guidelines and issue templates will be added as the public project matures.
 
+## License
+
+R2Engine is released under the [MIT License](LICENSE). You are free to use, modify, and distribute it, including in commercial projects, as long as the license and copyright notice are preserved.
+
 ## Acknowledgements
 
 R2Engine is built with open-source libraries and tools including Silk.NET, Dear ImGui through ImGui.NET, Roslyn, AssimpNetter, StbImageSharp, ImageSharp, OpenAL Soft, PS2SDK, and gsKit. Full licensing and attribution details are available from the Credits page in the R2Engine Hub.
