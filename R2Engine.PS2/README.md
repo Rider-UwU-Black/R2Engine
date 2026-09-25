@@ -116,8 +116,9 @@ host than the available Windows x86 package.
 
 ## Build
 
-The project wrapper automatically uses the `PSBBN` WSL distribution and the toolchain
-at `~/.local/ps2dev` when a native Windows compiler is unavailable.
+The project wrapper prefers a WSL distribution named `PSBBN` when present, otherwise
+it uses the first available WSL distribution. The PS2DEV toolchain must be installed
+at `~/.local/ps2dev` inside the selected distribution.
 
 From PowerShell:
 
@@ -161,9 +162,9 @@ milestone is considered complete.
 
 ## Installed development environment
 
-The official v2.0.0 Linux toolchain is installed in the `PSBBN` WSL distribution at
-`/home/rider/.local/ps2dev`. Re-run `install-toolchain-wsl.sh` to repair or reproduce
-that installation. The generated probe is a 32-bit little-endian MIPS executable.
+The setup helper installs the official v2.0.0 Linux toolchain at
+`~/.local/ps2dev`. Re-run `install-toolchain-wsl.sh` to repair or reproduce that
+installation. The generated probe is a 32-bit little-endian MIPS executable.
 
 ## Next proof steps
 

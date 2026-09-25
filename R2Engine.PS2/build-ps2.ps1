@@ -20,15 +20,28 @@ if ($null -ne $nativeCompiler -and $null -ne $nativeMake) {
 else {
     $wsl = Get-Command 'wsl.exe' -ErrorAction SilentlyContinue
     if ($null -eq $wsl) {
-        throw 'No usable native PS2 toolchain or WSL installation was found. See README.md.'
+        throw 'PS2 build prerequisites missing: Windows Subsystem for Linux (WSL) is not installed.'
+    }
+
+    $wslDistributions = @(& wsl.exe --list --quiet 2>$null) |
+        ForEach-Object { ($_ -replace "`0", '').Trim() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    if ($LASTEXITCODE -ne 0 -or $wslDistributions.Count -eq 0) {
+        throw 'PS2 build prerequisites missing: WSL is installed, but no Linux distribution is available.'
+    }
+    $wslDistribution = if ($wslDistributions -contains 'PSBBN') { 'PSBBN' } else { $wslDistributions[0] }
+
+    & wsl.exe -d $wslDistribution -- bash -lc 'test -x "${HOME}/.local/ps2dev/ee/bin/mips64r5900el-ps2-elf-gcc"'
+    if ($LASTEXITCODE -ne 0) {
+        throw "PS2 build prerequisites missing in WSL distribution '$wslDistribution': the PS2DEV compiler is not installed at ~/.local/ps2dev. Run R2Engine.PS2/install-toolchain-wsl.sh inside that distribution."
     }
 
     $resolvedRoot = (Resolve-Path -LiteralPath $PSScriptRoot).Path
     $drive = $resolvedRoot.Substring(0, 1).ToLowerInvariant()
     $relative = $resolvedRoot.Substring(2).Replace('\', '/')
     $linuxScript = "/mnt/$drive$relative/build-wsl.sh"
-    & wsl.exe -d PSBBN -- bash $linuxScript @makeArguments
-    if ($LASTEXITCODE -ne 0) { throw "PS2 WSL build failed with exit code $LASTEXITCODE." }
+    & wsl.exe -d $wslDistribution -- bash $linuxScript @makeArguments
+    if ($LASTEXITCODE -ne 0) { throw "PS2 compilation failed in WSL distribution '$wslDistribution' with exit code $LASTEXITCODE." }
 }
 
 $elf = Join-Path $PSScriptRoot 'bin\r2engine-ps2-probe.elf'

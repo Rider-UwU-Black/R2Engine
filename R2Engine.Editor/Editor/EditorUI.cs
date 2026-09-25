@@ -2617,6 +2617,13 @@ public class EditorUI : IDisposable
         if (errorLine != null)
             return errorLine;
 
+        string? prerequisiteLine = lines.LastOrDefault(line =>
+            line.Contains("prerequisites missing", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("compiler not found", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("Run install-toolchain", StringComparison.OrdinalIgnoreCase));
+        if (prerequisiteLine != null)
+            return prerequisiteLine.TrimStart('+', ' ');
+
         return lines.Length == 0
             ? "The build process failed without an error message."
             : string.Join(" | ", lines.TakeLast(Math.Min(4, lines.Length)));
