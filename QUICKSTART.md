@@ -5,9 +5,10 @@ This guide takes you from the portable download to your first saved R2Engine sce
 ## 1. Download and extract R2Engine
 
 1. Download the newest portable ZIP from the [R2Engine Releases page](https://github.com/Rider-UwU-Black/R2Engine/releases).
-2. Extract the entire ZIP to a normal folder such as `Documents\R2Engine`.
-3. Do not run R2Engine from inside the ZIP preview.
-4. Open the extracted folder and run `R2Engine.Hub.exe`.
+2. Right-click the downloaded ZIP, choose **Properties**, check **Unblock** if that option is present, and select **Apply**. Do this before extracting so Windows does not carry the internet security marker into the Editor and Player executables.
+3. Extract the entire ZIP to a normal folder such as `Documents\R2Engine`.
+4. Do not run R2Engine from inside the ZIP preview.
+5. Open the extracted folder and run `R2Engine.Hub.exe`.
 
 R2Engine is currently an unsigned early release. Windows may show a security warning for a newly downloaded executable. Confirm that the file came from the official R2Engine repository before choosing to run it.
 

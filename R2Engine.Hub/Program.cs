@@ -899,13 +899,26 @@ internal sealed class HubForm : Form
         ProjectEntry? known = _entries.FirstOrDefault(entry => SamePath(entry.Path, root));
         AddOrUpdate(new ProjectEntry(known?.Name ?? new DirectoryInfo(root).Name, root, DateTime.UtcNow,
             known?.IsFavorite ?? false, _editorVersion));
-        Process.Start(new ProcessStartInfo
+        try
         {
-            FileName = _editorPath,
-            Arguments = $"--project \"{root}\"",
-            WorkingDirectory = root,
-            UseShellExecute = true
-        });
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = _editorPath,
+                Arguments = $"--project \"{root}\"",
+                WorkingDirectory = root,
+                UseShellExecute = true
+            });
+        }
+        catch (System.ComponentModel.Win32Exception exception)
+        {
+            string message = exception.Message.Contains("Application Control policy", StringComparison.OrdinalIgnoreCase)
+                ? "Windows Application Control blocked the R2Engine Editor.\n\n" +
+                  "R2Engine preview releases are currently unsigned. If you trust this download, right-click the " +
+                  "original R2Engine ZIP, choose Properties, check Unblock, apply the change, and then extract it again."
+                : $"Windows could not start the R2Engine Editor.\n\n{exception.Message}";
+            MessageBox.Show(this, message, "Editor Could Not Start", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
         if (_settings.CloseHubAfterOpeningProject)
             Close();
     }
