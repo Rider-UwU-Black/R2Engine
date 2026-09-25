@@ -52,6 +52,7 @@ public static class BuildAssetCollector
         string destinationAssets = Path.Combine(buildDirectory, "Assets");
         if (Directory.Exists(destinationAssets))
             Directory.Delete(destinationAssets, recursive: true);
+        Directory.CreateDirectory(destinationAssets);
 
         foreach (BuildAssetEntry entry in collection.Assets)
         {

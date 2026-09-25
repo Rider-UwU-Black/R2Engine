@@ -573,9 +573,9 @@ public static class AssetDatabase
 
     private static string FindProjectRoot()
     {
-        // Packaged games place game.json and Assets beside the executable.
-        if (File.Exists(Path.Combine(AppContext.BaseDirectory, "game.json")) &&
-            Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Assets")))
+        // game.json is the authoritative marker for an exported player. Empty
+        // projects may legitimately have no referenced assets yet.
+        if (File.Exists(Path.Combine(AppContext.BaseDirectory, "game.json")))
         {
             return Path.GetFullPath(AppContext.BaseDirectory);
         }
