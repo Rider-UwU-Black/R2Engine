@@ -29,7 +29,7 @@ The current portable preview is intended for developers, curious testers, and sm
 - There is no automatic updater. Portable releases must be downloaded and extracted manually.
 - The project is pre-release software. Scene formats, project settings, scripting APIs, and editor workflows may change between versions.
 - The native PS2 runtime does not yet have complete feature parity with Windows. Always test console-targeted scenes in PCSX2 and, when possible, on real hardware.
-- PS2 builds require a separately installed PS2DEV environment with PS2SDK and gsKit. Final ISO packaging also relies on additional tools documented in the PS2 guide.
+- PS2 builds require Ubuntu under Windows Subsystem for Linux (WSL). R2Engine includes a setup helper that installs the required PS2 compiler and supporting tools inside Ubuntu.
 - A stock PlayStation 2 cannot boot unsigned homebrew software by itself. Real-hardware testing requires an appropriate homebrew launch method.
 - Building R2Engine from source requires the .NET 10 SDK. The portable release includes the runtime needed for normal Hub and editor use.
 
@@ -79,7 +79,13 @@ The Hub launches the editor build from this repository and stores user-specific 
 
 ## PlayStation 2 development
 
-Windows testing does not require the PS2 toolchain. Building the native PS2 runtime requires a PS2DEV environment with PS2SDK and gsKit. PCSX2 can be configured from the Hub settings.
+Windows testing does not require WSL or the PS2 toolchain. To build for PS2, install and initialize Ubuntu under WSL, then run the included setup helper from the R2Engine folder:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\R2Engine.PS2\setup-toolchain.ps1
+```
+
+The helper installs the required Linux packages and PS2 development toolchain inside Ubuntu. PCSX2 can be configured separately from the Hub settings.
 
 R2Engine can produce development builds for PCSX2 and package a final ISO, but a stock PlayStation 2 cannot boot unsigned homebrew software by itself. Real-hardware testing requires an appropriate homebrew launch method.
 
