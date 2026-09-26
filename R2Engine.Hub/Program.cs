@@ -81,6 +81,12 @@ internal sealed class HubForm : Form
         ApplyRoundedWindowShape();
         ApplyTheme();
         LoadProjects();
+        Shown += async (_, _) =>
+        {
+            await OfferFirstRunPs2SetupAsync();
+            if (_settings.CheckForUpdatesAutomatically)
+                await CheckForUpdatesAsync(userInitiated: false);
+        };
     }
 
     private void BuildInterface()
@@ -450,11 +456,212 @@ internal sealed class HubForm : Form
 
     private void ShowSettings()
     {
-        using var dialog = new HubSettingsForm(_settings, RemoveMissingProjects, _engineRoot, OpenProjectFolder);
+        using var dialog = new HubSettingsForm(
+            _settings, RemoveMissingProjects, _engineRoot, OpenProjectFolder, LaunchPs2Setup,
+            CheckForUpdatesAsync);
         dialog.ShowDialog(this);
         _settings = dialog.Settings;
         _settings.Save();
         ApplyTheme();
+    }
+
+    private async Task OfferFirstRunPs2SetupAsync()
+    {
+        if (_settings.Ps2SetupPromptShown)
+            return;
+
+        (bool ubuntuInstalled, bool compilerInstalled) = await Task.Run(DetectPs2Setup);
+        _settings.Ps2SetupPromptShown = true;
+        _settings.Save();
+
+        if (compilerInstalled)
+            return;
+
+        if (!ubuntuInstalled)
+        {
+            DialogResult installUbuntu = MessageBox.Show(this,
+                "PS2 builds need Ubuntu under Windows Subsystem for Linux. Windows builds do not need it.\n\n" +
+                "Install Ubuntu now? Windows may request administrator approval or a restart. After installation, open Ubuntu once to create its user account, then run Set Up PS2 Tools from Hub Settings > External Tools.",
+                "Optional PS2 Development Setup", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            if (installUbuntu == DialogResult.Yes)
+                LaunchUbuntuInstaller();
+            return;
+        }
+
+        DialogResult setup = MessageBox.Show(this,
+            "Ubuntu is available, but the PS2 compiler has not been set up yet.\n\n" +
+            "Set up the PS2 development tools now? Ubuntu may ask for your password.",
+            "Optional PS2 Development Setup", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+        if (setup == DialogResult.Yes)
+            LaunchPs2Setup();
+    }
+
+    private static (bool UbuntuInstalled, bool CompilerInstalled) DetectPs2Setup()
+    {
+        try
+        {
+            using var list = Process.Start(new ProcessStartInfo
+            {
+                FileName = "wsl.exe",
+                Arguments = "--list --quiet",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            });
+            if (list == null || !list.WaitForExit(5000))
+            {
+                try { list?.Kill(entireProcessTree: true); } catch { }
+                return (false, false);
+            }
+
+            string[] distributions = list.StandardOutput.ReadToEnd().Replace("\0", "")
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string? ubuntu = distributions.FirstOrDefault(name =>
+                name.StartsWith("Ubuntu", StringComparison.OrdinalIgnoreCase));
+            if (ubuntu == null)
+                return (false, false);
+
+            using var verify = Process.Start(new ProcessStartInfo
+            {
+                FileName = "wsl.exe",
+                ArgumentList =
+                {
+                    "-d", ubuntu, "--", "bash", "-lc",
+                    "test -x \"${HOME}/.local/ps2dev/ee/bin/mips64r5900el-ps2-elf-gcc\""
+                },
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            bool compilerInstalled = verify != null && verify.WaitForExit(5000) && verify.ExitCode == 0;
+            if (verify != null && !verify.HasExited)
+            {
+                try { verify.Kill(entireProcessTree: true); } catch { }
+            }
+            return (true, compilerInstalled);
+        }
+        catch
+        {
+            return (false, false);
+        }
+    }
+
+    private void LaunchPs2Setup()
+    {
+        (bool ubuntuInstalled, bool compilerInstalled) = DetectPs2Setup();
+        if (compilerInstalled)
+        {
+            MessageBox.Show(this, "Ubuntu and the R2Engine PS2 compiler are already set up.",
+                "PS2 Tools Ready", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+        if (!ubuntuInstalled)
+        {
+            if (MessageBox.Show(this,
+                    "Ubuntu under WSL is required before the PS2 tools can be installed. Install Ubuntu now?",
+                    "Ubuntu Required", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                LaunchUbuntuInstaller();
+            return;
+        }
+
+        string helper = Path.Combine(_engineRoot, "R2Engine.PS2", "setup-toolchain.ps1");
+        if (!File.Exists(helper))
+        {
+            MessageBox.Show(this, "The PS2 setup helper is missing from this R2Engine installation.",
+                "Setup Helper Missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "powershell.exe",
+            Arguments = $"-NoExit -ExecutionPolicy Bypass -File \"{helper}\"",
+            WorkingDirectory = _engineRoot,
+            UseShellExecute = true
+        });
+    }
+
+    private void LaunchUbuntuInstaller()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = "-NoExit -Command \"wsl --install -d Ubuntu\"",
+                Verb = "runas",
+                UseShellExecute = true
+            });
+        }
+        catch (System.ComponentModel.Win32Exception exception) when (exception.NativeErrorCode == 1223)
+        {
+            // The user declined the Windows elevation prompt.
+        }
+    }
+
+    private async Task CheckForUpdatesAsync(bool userInitiated)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("R2Engine-Hub/0.1");
+            using JsonDocument release = JsonDocument.Parse(await client.GetStringAsync(
+                "https://api.github.com/repos/Rider-UwU-Black/R2Engine/releases/latest"));
+            JsonElement root = release.RootElement;
+            string tag = root.GetProperty("tag_name").GetString() ?? "";
+            string versionText = tag.TrimStart('v', 'V');
+            if (!Version.TryParse(versionText, out Version? available))
+                throw new InvalidDataException($"GitHub returned an unsupported release tag: {tag}");
+            Version current = typeof(HubForm).Assembly.GetName().Version ?? new Version(0, 0);
+            if (available <= current)
+            {
+                if (userInitiated)
+                    MessageBox.Show(this, $"R2Engine {current.ToString(3)} is up to date.",
+                        "No Updates Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            JsonElement? asset = root.GetProperty("assets").EnumerateArray().FirstOrDefault(item =>
+                string.Equals(item.GetProperty("name").GetString(), "R2Engine-Portable-win-x64.zip",
+                    StringComparison.OrdinalIgnoreCase));
+            if (asset == null || asset.Value.ValueKind == JsonValueKind.Undefined)
+                throw new InvalidDataException("The latest release does not contain the portable Windows ZIP.");
+
+            if (MessageBox.Show(this,
+                    $"R2Engine {tag} is available.\n\nDownload and install it now? The Hub will close and reopen. Projects and UserData will be preserved.",
+                    "R2Engine Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
+                return;
+
+            UseWaitCursor = true;
+            string downloadUrl = asset.Value.GetProperty("browser_download_url").GetString()
+                ?? throw new InvalidDataException("The release download URL is missing.");
+            string archive = Path.Combine(Path.GetTempPath(), $"R2Engine-update-{Guid.NewGuid():N}.zip");
+            await using (Stream source = await client.GetStreamAsync(downloadUrl))
+            await using (FileStream destination = File.Create(archive))
+                await source.CopyToAsync(destination);
+
+            string updater = Path.Combine(_engineRoot, "Tools", "Apply-PortableUpdate.ps1");
+            if (!File.Exists(updater))
+                throw new FileNotFoundException("The portable update helper is missing.", updater);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{updater}\" -Archive \"{archive}\" -InstallRoot \"{_engineRoot}\" -HubExecutable \"{Application.ExecutablePath}\" -HubProcessId {Environment.ProcessId}",
+                WorkingDirectory = _engineRoot,
+                UseShellExecute = true
+            });
+            Application.Exit();
+        }
+        catch (Exception exception)
+        {
+            if (userInitiated)
+                MessageBox.Show(this, $"R2Engine could not check for updates.\n\n{exception.Message}",
+                    "Update Check Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+        finally
+        {
+            UseWaitCursor = false;
+        }
     }
 
     private void ShowHubSection(string section)
@@ -1983,6 +2190,8 @@ internal sealed class UserSettings
     public bool ConfirmBeforeRemovingProject { get; set; } = true;
     public string Language { get; set; } = "English";
     public bool Pcsx2HostFsNoticeAcknowledged { get; set; }
+    public bool Ps2SetupPromptShown { get; set; }
+    public bool CheckForUpdatesAutomatically { get; set; } = true;
 
     public string ResolvedProjectsFolder => string.IsNullOrWhiteSpace(DefaultProjectsFolder)
         ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "R2Engine Projects")
@@ -2022,6 +2231,8 @@ internal sealed class HubSettingsForm : Form
     private readonly Dictionary<Button, Control> _pages = new();
     private readonly bool _dark;
     private readonly bool _pcsx2HostFsNoticeAcknowledged;
+    private readonly bool _ps2SetupPromptShown;
+    private readonly CheckBox _automaticUpdates = new();
     public UserSettings Settings => new()
     {
         DarkTheme = _darkTheme.Checked,
@@ -2030,17 +2241,22 @@ internal sealed class HubSettingsForm : Form
         CloseHubAfterOpeningProject = _closeAfterOpen.Checked,
         ConfirmBeforeRemovingProject = _confirmRemove.Checked,
         Language = _language.SelectedItem?.ToString() ?? "English",
-        Pcsx2HostFsNoticeAcknowledged = _pcsx2HostFsNoticeAcknowledged
+        Pcsx2HostFsNoticeAcknowledged = _pcsx2HostFsNoticeAcknowledged,
+        Ps2SetupPromptShown = _ps2SetupPromptShown,
+        CheckForUpdatesAutomatically = _automaticUpdates.Checked
     };
 
     public HubSettingsForm(
         UserSettings current,
         Func<int> removeMissingProjects,
         string engineRoot,
-        Action openEngineFolder)
+        Action openEngineFolder,
+        Action setupPs2Tools,
+        Func<bool, Task> checkForUpdates)
     {
         _dark = current.DarkTheme;
         _pcsx2HostFsNoticeAcknowledged = current.Pcsx2HostFsNoticeAcknowledged;
+        _ps2SetupPromptShown = current.Ps2SetupPromptShown;
         Text = "R2Engine Settings";
         StartPosition = FormStartPosition.CenterParent;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -2139,6 +2355,9 @@ internal sealed class HubSettingsForm : Form
         toolsPage.Controls.Add(MakeLabel("Required for PS2 Emulator Build and Run:", 28, 228));
         toolsPage.Controls.Add(MakeLabel("In PCSX2, enable Settings > Emulation > Enable Host Filesystem.", 28, 252));
         toolsPage.Controls.Add(MakeLabel("Without it, PCSX2 opens to a black screen and displays No Image.", 28, 276));
+        var setupPs2 = new Button { Text = "Set Up PS2 Tools...", Location = new Point(28, 312), Size = new Size(150, 30) };
+        setupPs2.Click += (_, _) => setupPs2Tools();
+        toolsPage.Controls.Add(setupPs2);
         _pcsx2Path.TextChanged += (_, _) => UpdatePcsx2Status();
         UpdatePcsx2Status();
 
@@ -2160,6 +2379,14 @@ internal sealed class HubSettingsForm : Form
         advancedPage.Controls.Add(openEngine);
         advancedPage.Controls.Add(MakeLabel(
             "This contains the editor, engine source, console runtime, and build tools.", 28, 155));
+        _automaticUpdates.Text = "Automatically check GitHub for new releases";
+        _automaticUpdates.Checked = current.CheckForUpdatesAutomatically;
+        _automaticUpdates.Location = new Point(28, 210);
+        _automaticUpdates.AutoSize = true;
+        var checkUpdates = new Button { Text = "Check for Updates", Location = new Point(28, 244), Size = new Size(140, 30) };
+        checkUpdates.Click += async (_, _) => await checkForUpdates(true);
+        advancedPage.Controls.Add(_automaticUpdates);
+        advancedPage.Controls.Add(checkUpdates);
 
         AddCategory(navigation, "Projects", projectsPage, selected: true);
         AddCategory(navigation, "Appearance", appearancePage);

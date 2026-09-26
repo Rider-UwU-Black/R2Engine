@@ -26,7 +26,7 @@ The current portable preview is intended for developers, curious testers, and sm
 
 - The Hub and editor currently target 64-bit Windows. Other desktop platforms are not packaged or supported yet.
 - Releases are unsigned, so Windows may show a security warning after download.
-- There is no automatic updater. Portable releases must be downloaded and extracted manually.
+- The Hub can check GitHub Releases for portable updates and install them after confirmation. Projects and portable user settings are preserved.
 - The project is pre-release software. Scene formats, project settings, scripting APIs, and editor workflows may change between versions.
 - The native PS2 runtime does not yet have complete feature parity with Windows. Always test console-targeted scenes in PCSX2 and, when possible, on real hardware.
 - PS2 builds require Ubuntu under Windows Subsystem for Linux (WSL). R2Engine includes a setup helper that installs the required PS2 compiler and supporting tools inside Ubuntu.
