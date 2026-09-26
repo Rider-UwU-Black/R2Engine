@@ -89,6 +89,7 @@ public class EditorUI : IDisposable
     private string _layoutNameBuffer = "";
     private EditorLayout? _layoutToDelete;
     private Task<string>? _gameBuildTask;
+    private bool _openPcsx2HostFsNotice;
 
     private GameObject? _selectedObject;
     private readonly HashSet<GameObject> _selectedObjects = new();
@@ -689,6 +690,7 @@ public class EditorUI : IDisposable
 
         DrawUnsavedChangesPopup();
         DrawLayoutPopups();
+        DrawPcsx2HostFsNotice();
 
         if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
         {
@@ -2331,6 +2333,12 @@ public class EditorUI : IDisposable
             return;
         }
 
+        if (!finalIso && !R2UserSettings.Load().Pcsx2HostFsNoticeAcknowledged)
+        {
+            _openPcsx2HostFsNotice = true;
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(_currentScenePath) &&
             string.IsNullOrWhiteSpace(_projectSettings.StartupScene) &&
             !SaveScene())
@@ -2352,6 +2360,39 @@ public class EditorUI : IDisposable
             finalIso ? "Building self-contained PS2 ISO..." : "Building game for PS2 and launching PCSX2...";
         _scriptMessages.Add(_statusMessage);
         _gameBuildTask = Task.Run(() => BuildAndRunPs2Worker(finalIso, deployToNetwork));
+    }
+
+    private void DrawPcsx2HostFsNotice()
+    {
+        if (_openPcsx2HostFsNotice)
+        {
+            ImGui.OpenPopup("PCSX2 Setup Required");
+            _openPcsx2HostFsNotice = false;
+        }
+
+        ImGui.SetNextWindowSize(new Vector2(520.0f, 0.0f), ImGuiCond.Appearing);
+        if (!ImGui.BeginPopupModal("PCSX2 Setup Required", ImGuiWindowFlags.AlwaysAutoResize))
+            return;
+
+        ImGui.TextWrapped("R2Engine loads development builds through PCSX2's Host Filesystem feature.");
+        ImGui.Spacing();
+        ImGui.TextWrapped("Before continuing, open PCSX2 and enable:");
+        ImGui.Text("Settings  >  Emulation  >  Enable Host Filesystem");
+        ImGui.Spacing();
+        ImGui.TextWrapped("If this is disabled, PCSX2 opens to a black screen and displays No Image.");
+        ImGui.Spacing();
+
+        if (ImGui.Button("I've Enabled It", new Vector2(145.0f, 0.0f)))
+        {
+            R2UserSettings.AcknowledgePcsx2HostFsNotice();
+            ImGui.CloseCurrentPopup();
+            BuildAndRunPs2();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Cancel", new Vector2(90.0f, 0.0f)))
+            ImGui.CloseCurrentPopup();
+
+        ImGui.EndPopup();
     }
 
     private string BuildAndRunPs2Worker(bool finalIso = false, bool deployToNetwork = false)

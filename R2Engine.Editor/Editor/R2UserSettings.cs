@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace R2Engine.Editor;
 
@@ -6,6 +7,7 @@ internal sealed class R2UserSettings
 {
     public bool DarkTheme { get; set; }
     public string Pcsx2ExecutablePath { get; set; } = "";
+    public bool Pcsx2HostFsNoticeAcknowledged { get; set; }
 
     internal static string UserDataRoot { get; } = FindUserDataRoot();
 
@@ -37,5 +39,24 @@ internal sealed class R2UserSettings
         {
             return new R2UserSettings();
         }
+    }
+
+    public static void AcknowledgePcsx2HostFsNotice()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
+        JsonObject settings;
+        try
+        {
+            settings = File.Exists(SettingsPath)
+                ? JsonNode.Parse(File.ReadAllText(SettingsPath)) as JsonObject ?? new JsonObject()
+                : new JsonObject();
+        }
+        catch
+        {
+            settings = new JsonObject();
+        }
+
+        settings[nameof(Pcsx2HostFsNoticeAcknowledged)] = true;
+        File.WriteAllText(SettingsPath, settings.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
     }
 }

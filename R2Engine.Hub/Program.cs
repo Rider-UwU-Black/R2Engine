@@ -1982,6 +1982,7 @@ internal sealed class UserSettings
     public bool CloseHubAfterOpeningProject { get; set; } = true;
     public bool ConfirmBeforeRemovingProject { get; set; } = true;
     public string Language { get; set; } = "English";
+    public bool Pcsx2HostFsNoticeAcknowledged { get; set; }
 
     public string ResolvedProjectsFolder => string.IsNullOrWhiteSpace(DefaultProjectsFolder)
         ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "R2Engine Projects")
@@ -2020,6 +2021,7 @@ internal sealed class HubSettingsForm : Form
     private readonly Panel _pageHost = new();
     private readonly Dictionary<Button, Control> _pages = new();
     private readonly bool _dark;
+    private readonly bool _pcsx2HostFsNoticeAcknowledged;
     public UserSettings Settings => new()
     {
         DarkTheme = _darkTheme.Checked,
@@ -2027,7 +2029,8 @@ internal sealed class HubSettingsForm : Form
         DefaultProjectsFolder = _projectsFolder.Text.Trim(),
         CloseHubAfterOpeningProject = _closeAfterOpen.Checked,
         ConfirmBeforeRemovingProject = _confirmRemove.Checked,
-        Language = _language.SelectedItem?.ToString() ?? "English"
+        Language = _language.SelectedItem?.ToString() ?? "English",
+        Pcsx2HostFsNoticeAcknowledged = _pcsx2HostFsNoticeAcknowledged
     };
 
     public HubSettingsForm(
@@ -2037,6 +2040,7 @@ internal sealed class HubSettingsForm : Form
         Action openEngineFolder)
     {
         _dark = current.DarkTheme;
+        _pcsx2HostFsNoticeAcknowledged = current.Pcsx2HostFsNoticeAcknowledged;
         Text = "R2Engine Settings";
         StartPosition = FormStartPosition.CenterParent;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -2132,6 +2136,9 @@ internal sealed class HubSettingsForm : Form
         _pcsx2Status.AutoSize = true;
         toolsPage.Controls.Add(_pcsx2Status);
         toolsPage.Controls.Add(MakeLabel("Leave this blank and R2Engine will look in the standard installation locations.", 28, 184));
+        toolsPage.Controls.Add(MakeLabel("Required for PS2 Emulator Build and Run:", 28, 228));
+        toolsPage.Controls.Add(MakeLabel("In PCSX2, enable Settings > Emulation > Enable Host Filesystem.", 28, 252));
+        toolsPage.Controls.Add(MakeLabel("Without it, PCSX2 opens to a black screen and displays No Image.", 28, 276));
         _pcsx2Path.TextChanged += (_, _) => UpdatePcsx2Status();
         UpdatePcsx2Status();
 

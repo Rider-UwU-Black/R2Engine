@@ -16,7 +16,10 @@ feature limitations still apply; "Final" means self-contained disc packaging.
 
 The disc build resolves logical asset names through PATHS.BIN to flat ISO9660
 filenames. HostFS and disc builds use separate object files and executables;
-**Build & Run PS2 (PCSX2)** remains the development workflow.
+**Build & Run PS2 (PCSX2)** remains the development workflow. Before using it,
+enable **Settings > Emulation > Enable Host Filesystem** in PCSX2. Development
+ELFs load cooked scenes and assets through HostFS; when it is disabled, PCSX2 can
+open to a black **No Image** screen.
 
 Command-line export after cooking:
 

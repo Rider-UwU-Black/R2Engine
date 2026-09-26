@@ -85,7 +85,7 @@ Windows testing does not require WSL or the PS2 toolchain. To build for PS2, ins
 powershell -ExecutionPolicy Bypass -File .\R2Engine.PS2\setup-toolchain.ps1
 ```
 
-The helper installs the required Linux packages and PS2 development toolchain inside Ubuntu. PCSX2 can be configured separately from the Hub settings.
+The helper installs the required Linux packages and PS2 development toolchain inside Ubuntu. PCSX2 can be configured separately from the Hub settings. For quick emulator builds, enable **Settings > Emulation > Enable Host Filesystem** in PCSX2 so the running ELF can read the cooked scene and assets.
 
 R2Engine can produce development builds for PCSX2 and package a final ISO, but a stock PlayStation 2 cannot boot unsigned homebrew software by itself. Real-hardware testing requires an appropriate homebrew launch method.
 
