@@ -60,7 +60,7 @@ int main(int argc, char **argv)
                 r2_ps2_destroy(platform);
                 FlushCache(0);
                 FlushCache(2);
-                /* Match OPL/PSBBN's own IGR handoff. ExecOSD forces the
+                /* Match the console's common IGR handoff. ExecOSD forces the
                    generic browser boot path and bypasses the launcher's
                    installed exit handling; Exit lets that loader regain
                    control when it supplied an exit target. */

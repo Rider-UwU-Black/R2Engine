@@ -78,8 +78,8 @@ extracted R2Engine folder, run:
 powershell -ExecutionPolicy Bypass -File .\R2Engine.PS2\setup-toolchain.ps1
 ```
 
-R2Engine uses a normal Ubuntu WSL distribution for compilation and deliberately does
-not use a `PSBBN` distribution or interact with PSBBN-managed drives.
+R2Engine uses Ubuntu under WSL for PS2 compilation. The setup helper installs its
+compiler toolchain inside your Ubuntu home directory.
 
 ## If something goes wrong
 

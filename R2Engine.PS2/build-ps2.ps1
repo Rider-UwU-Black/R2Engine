@@ -19,7 +19,7 @@ if ($null -ne $nativeCompiler -and $null -ne $nativeMake) {
 }
 else {
     . (Join-Path $PSScriptRoot 'wsl-common.ps1')
-    $wslDistribution = Get-R2WslDistribution
+    $wslDistribution = Get-R2UbuntuDistribution
 
     & wsl.exe -d $wslDistribution -- bash -lc 'test -x "${HOME}/.local/ps2dev/ee/bin/mips64r5900el-ps2-elf-gcc"'
     if ($LASTEXITCODE -ne 0) {

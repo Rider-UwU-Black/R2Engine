@@ -7,7 +7,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'wsl-common.ps1')
-$wslDistribution = Get-R2WslDistribution
+$wslDistribution = Get-R2UbuntuDistribution
 function Convert-ToWslPath([string]$value) {
     $full = [IO.Path]::GetFullPath($value)
     if ($full -notmatch '^[A-Za-z]:\\') { throw "Expected a local drive path: $full" }

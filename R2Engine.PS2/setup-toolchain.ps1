@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'wsl-common.ps1')
-$distribution = Get-R2WslDistribution
+$distribution = Get-R2UbuntuDistribution
 
 Write-Host "Preparing the R2Engine PS2 toolchain in WSL distribution '$distribution'."
 Write-Host 'Linux may ask for your password while installing prerequisites.'

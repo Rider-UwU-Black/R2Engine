@@ -116,10 +116,9 @@ host than the available Windows x86 package.
 
 ## Build
 
-The project wrapper prefers a dedicated WSL distribution named `R2Engine-PS2`, then
-uses the first available distribution other than `PSBBN`. R2Engine deliberately never
-uses the PSBBN distribution because that environment belongs to PSBBN drive management.
-The PS2DEV toolchain must be installed at `~/.local/ps2dev` inside the selected distribution.
+The project wrapper requires an initialized Ubuntu distribution under WSL. The PS2DEV
+toolchain must be installed at `~/.local/ps2dev` inside Ubuntu. Run
+`setup-toolchain.ps1` once after Ubuntu is ready to install the Linux packages and toolchain.
 
 From PowerShell:
 

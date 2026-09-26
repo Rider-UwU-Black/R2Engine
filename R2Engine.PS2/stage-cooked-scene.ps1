@@ -60,7 +60,7 @@ if (Test-Path -LiteralPath $audioSourceRoot) {
     $scriptDrive = $resolvedScript.Substring(0, 1).ToLowerInvariant()
     $scriptRelative = $resolvedScript.Substring(2).Replace('\', '/')
     . (Join-Path $PSScriptRoot 'wsl-common.ps1')
-    $wslDistribution = Get-R2WslDistribution
+    $wslDistribution = Get-R2UbuntuDistribution
     & wsl.exe -d $wslDistribution -- python3 "/mnt/$scriptDrive$scriptRelative" $wslAudio
     if ($LASTEXITCODE -ne 0) { throw 'PS2 UI audio conversion failed.' }
 }
