@@ -6,6 +6,14 @@ install_root="${HOME}/.local/ps2dev"
 archive="${HOME}/.cache/ps2dev-ubuntu-${version}.tar.gz"
 url="https://github.com/ps2dev/ps2dev/releases/download/${version}/ps2dev-ubuntu-latest.tar.gz"
 
+for command in curl tar make python3; do
+    if ! command -v "${command}" >/dev/null 2>&1; then
+        printf 'Missing Linux prerequisite: %s\n' "${command}" >&2
+        printf 'On Ubuntu, run: sudo apt update && sudo apt install -y curl make python3 genisoimage\n' >&2
+        exit 1
+    fi
+done
+
 mkdir -p "${HOME}/.cache" "${install_root}"
 
 if [[ ! -f "${archive}" ]]; then

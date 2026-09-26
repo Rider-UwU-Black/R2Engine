@@ -59,7 +59,9 @@ if (Test-Path -LiteralPath $audioSourceRoot) {
     $resolvedScript = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot 'prepare-ui-audio.py')).Path
     $scriptDrive = $resolvedScript.Substring(0, 1).ToLowerInvariant()
     $scriptRelative = $resolvedScript.Substring(2).Replace('\', '/')
-    & wsl.exe -d PSBBN -- python3 "/mnt/$scriptDrive$scriptRelative" $wslAudio
+    . (Join-Path $PSScriptRoot 'wsl-common.ps1')
+    $wslDistribution = Get-R2WslDistribution
+    & wsl.exe -d $wslDistribution -- python3 "/mnt/$scriptDrive$scriptRelative" $wslAudio
     if ($LASTEXITCODE -ne 0) { throw 'PS2 UI audio conversion failed.' }
 }
 

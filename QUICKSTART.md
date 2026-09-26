@@ -71,6 +71,16 @@ When you are ready to test a cooked PS2 build:
 
 Native PS2 compilation requires the separate PS2DEV toolchain. Real hardware also requires an appropriate homebrew launch method.
 
+On Windows, install and initialize an Ubuntu WSL distribution first. Then, from the
+extracted R2Engine folder, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\R2Engine.PS2\setup-toolchain.ps1
+```
+
+R2Engine uses a normal Ubuntu WSL distribution for compilation and deliberately does
+not use a `PSBBN` distribution or interact with PSBBN-managed drives.
+
 ## If something goes wrong
 
 - Make sure the ZIP was fully extracted before running the Hub.

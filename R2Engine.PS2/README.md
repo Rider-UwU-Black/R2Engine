@@ -24,7 +24,7 @@ Command-line export after cooking:
 .\R2Engine.PS2\build-final.ps1 -CookedBuildDirectory .\Builds\Windows -SceneName DemoScene
 ```
 
-Requires the existing PSBBN WSL PS2 toolchain, Python 3, and `genisoimage` (including
+Requires a separate Ubuntu WSL PS2 toolchain, Python 3, and `genisoimage` (including
 `isoinfo`). The ISO creator does not install dependencies automatically.
 
 Test the ISO by opening it directly as a disc image in PCSX2, without an ELF
@@ -116,9 +116,10 @@ host than the available Windows x86 package.
 
 ## Build
 
-The project wrapper prefers a WSL distribution named `PSBBN` when present, otherwise
-it uses the first available WSL distribution. The PS2DEV toolchain must be installed
-at `~/.local/ps2dev` inside the selected distribution.
+The project wrapper prefers a dedicated WSL distribution named `R2Engine-PS2`, then
+uses the first available distribution other than `PSBBN`. R2Engine deliberately never
+uses the PSBBN distribution because that environment belongs to PSBBN drive management.
+The PS2DEV toolchain must be installed at `~/.local/ps2dev` inside the selected distribution.
 
 From PowerShell:
 

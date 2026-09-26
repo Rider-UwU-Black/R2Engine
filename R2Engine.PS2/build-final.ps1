@@ -6,6 +6,8 @@ param(
     [switch]$DisableVu1
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'wsl-common.ps1')
+$wslDistribution = Get-R2WslDistribution
 function Convert-ToWslPath([string]$value) {
     $full = [IO.Path]::GetFullPath($value)
     if ($full -notmatch '^[A-Za-z]:\\') { throw "Expected a local drive path: $full" }
@@ -17,9 +19,9 @@ $nativeArguments = @('FINAL=1')
 if ($ProgressiveScan) { $nativeArguments += 'PROGRESSIVE=1' }
 if ($DevelopmentBuild) { $nativeArguments += 'DEVELOPMENT=1' }
 if ($DisableVu1) { $nativeArguments += 'VU1=0' }
-& wsl.exe -d PSBBN -- bash "$root/build-wsl.sh" @nativeArguments
+& wsl.exe -d $wslDistribution -- bash "$root/build-wsl.sh" @nativeArguments
 if ($LASTEXITCODE -ne 0) { throw 'PS2 Final native build failed.' }
-& wsl.exe -d PSBBN -- python3 "$root/package-iso.py" (Convert-ToWslPath $build) $SceneName
+& wsl.exe -d $wslDistribution -- python3 "$root/package-iso.py" (Convert-ToWslPath $build) $SceneName
 if ($LASTEXITCODE -ne 0) { throw 'PS2 ISO packaging failed. See build output for details.' }
 $filename = 'R2GM_000.01.' + [IO.Path]::GetFileNameWithoutExtension($SceneName) + '.iso'
 Write-Host ('Exported PS2 ISO: ' + (Join-Path $build ('PS2-Final\' + $filename)))

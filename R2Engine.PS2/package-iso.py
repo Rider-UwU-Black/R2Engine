@@ -71,7 +71,7 @@ def make_ui_variants(source, output):
 def package(build, scene):
     tool = shutil.which('genisoimage') or shutil.which('mkisofs')
     if not tool:
-        raise RuntimeError('Install genisoimage in the PSBBN WSL distribution before Final export.')
+        raise RuntimeError('Install genisoimage in the R2Engine WSL distribution before Final export.')
     root = Path(__file__).resolve().parent
     build = Path(build).resolve()
     scene = Path(scene).stem

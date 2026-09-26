@@ -18,30 +18,8 @@ if ($null -ne $nativeCompiler -and $null -ne $nativeMake) {
     }
 }
 else {
-    $wsl = Get-Command 'wsl.exe' -ErrorAction SilentlyContinue
-    if ($null -eq $wsl) {
-        throw 'PS2 build prerequisites missing: Windows Subsystem for Linux (WSL) is not installed.'
-    }
-
-    # Windows PowerShell may promote text written by native programs to stderr
-    # into a terminating NativeCommandError while ErrorActionPreference is Stop.
-    # Capture the probe under Continue so we can report a useful prerequisite.
-    $previousErrorPreference = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        $wslProbeOutput = @(& wsl.exe --list --quiet 2>&1)
-        $wslProbeExitCode = $LASTEXITCODE
-    }
-    finally {
-        $ErrorActionPreference = $previousErrorPreference
-    }
-    $wslDistributions = @($wslProbeOutput |
-        ForEach-Object { ($_ -replace "`0", '').Trim() } |
-        Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-    if ($wslProbeExitCode -ne 0 -or $wslDistributions.Count -eq 0) {
-        throw 'PS2 build prerequisites missing: WSL has no initialized Linux distribution. Install and launch a WSL distribution once, then install PS2DEV inside it.'
-    }
-    $wslDistribution = if ($wslDistributions -contains 'PSBBN') { 'PSBBN' } else { $wslDistributions[0] }
+    . (Join-Path $PSScriptRoot 'wsl-common.ps1')
+    $wslDistribution = Get-R2WslDistribution
 
     & wsl.exe -d $wslDistribution -- bash -lc 'test -x "${HOME}/.local/ps2dev/ee/bin/mips64r5900el-ps2-elf-gcc"'
     if ($LASTEXITCODE -ne 0) {
