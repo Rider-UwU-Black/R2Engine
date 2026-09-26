@@ -7,7 +7,7 @@ Write-Host "Preparing the R2Engine PS2 toolchain in WSL distribution '$distribut
 Write-Host 'Linux may ask for your password while installing prerequisites.'
 
 & wsl.exe -d $distribution -- bash -lc `
-    'sudo apt-get update && sudo apt-get install -y curl make python3 genisoimage'
+    'sudo apt-get update && sudo apt-get install -y curl make python3 genisoimage libmpc3 libmpfr6 libgmp10 zlib1g'
 if ($LASTEXITCODE -ne 0) {
     throw "Linux prerequisite installation failed in '$distribution'."
 }
@@ -23,7 +23,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 & wsl.exe -d $distribution -- bash -lc `
-    '"${HOME}/.local/ps2dev/ee/bin/mips64r5900el-ps2-elf-gcc" --version | head -n 1'
+    'compiler="${HOME}/.local/ps2dev/ee/bin/mips64r5900el-ps2-elf-gcc"; "$compiler" --version | head -n 1 && printf "int main(void) { return 0; }\n" | "$compiler" -x c -c -o /tmp/r2engine-toolchain-check.o - && rm -f /tmp/r2engine-toolchain-check.o'
 if ($LASTEXITCODE -ne 0) {
     throw "The PS2DEV compiler could not be verified in '$distribution'."
 }

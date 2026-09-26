@@ -9,7 +9,7 @@ url="https://github.com/ps2dev/ps2dev/releases/download/${version}/ps2dev-ubuntu
 for command in curl tar make python3; do
     if ! command -v "${command}" >/dev/null 2>&1; then
         printf 'Missing Linux prerequisite: %s\n' "${command}" >&2
-        printf 'On Ubuntu, run: sudo apt update && sudo apt install -y curl make python3 genisoimage\n' >&2
+        printf 'On Ubuntu, run: sudo apt update && sudo apt install -y curl make python3 genisoimage libmpc3 libmpfr6 libgmp10 zlib1g\n' >&2
         exit 1
     fi
 done
